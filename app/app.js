@@ -26,17 +26,22 @@
   // Group an eligible mod list into families (side + group + template),
   // each family carrying its tier ladder (sorted high ilvl first).
   function buildFamilies(mods, baseTags, itemLevel) {
-    const fams = new Map();
+    const base = baseTags[0]; // our bases carry tags:[their own name]
+    const fams = [];
     for (const m of mods) {
       if (!modEligible(m, baseTags, itemLevel)) continue;
-      const key = m.side + "|" + (m.group || []).join(",") + "|" + familyText(m.text);
-      if (!fams.has(key)) {
-        fams.set(key, { key, side: m.side, group: m.group, label: familyText(m.text).replace(/#/g, "X"), tiers: [] });
-      }
-      fams.get(key).tiers.push(m);
+      const ladder = (m.bw && m.bw[base]) || [];
+      // One pickable option PER TIER rollable at this ilvl, with that tier's real text
+      // + ilvl (tiers/values differ per base, so this is read from bw[base]).
+      const tiers = ladder
+        .filter(t => t[0] <= itemLevel)
+        .map(t => Object.assign({}, m, { text: t[2] || m.text, ilvl: t[0] }))
+        .sort((a, b) => b.ilvl - a.ilvl);
+      if (!tiers.length) tiers.push(m);
+      fams.push({ key: m.id, side: m.side, group: m.group,
+        label: familyText(m.text).replace(/#/g, "X"), tiers });
     }
-    for (const f of fams.values()) f.tiers.sort((a, b) => b.ilvl - a.ilvl);
-    return [...fams.values()].sort((a, b) => a.label.localeCompare(b.label));
+    return fams.sort((a, b) => a.label.localeCompare(b.label));
   }
 
   // Core legality check on a proposed target.
@@ -159,7 +164,8 @@
   function renderPicker() {
     const list = $("#famlist"); list.innerHTML = "";
     if (!state.itemClass) return;
-    const pool = DB.classes[state.itemClass].prefixes.concat(DB.classes[state.itemClass].suffixes);
+    const cls = DB.classes[state.itemClass];
+    const pool = cls.prefixes.concat(cls.suffixes).concat(cls.desecrated || []);
     let fams = buildFamilies(pool, state.baseTags, state.itemLevel);
     const q = $("#modSearch").value.trim().toLowerCase();
     if (q) fams = fams.filter(f => f.label.toLowerCase().includes(q));
@@ -167,6 +173,7 @@
     fams.slice(0, 250).forEach(f => {
       const row = el("div", "fam");
       row.append(el("span", "side " + (f.side === "prefix" ? "tag pre" : "tag suf"), f.side === "prefix" ? "PRE" : "SUF"));
+      if (f.tiers[0] && f.tiers[0].src === "desecrated") row.append(el("span", "tag ess", "DESEC"));
       row.append(el("span", "ft", f.label));
       const sel = el("select");
       f.tiers.forEach((t, i) => sel.append(new Option(`${t.text}  · ilvl ${t.ilvl}`, i)));
@@ -180,6 +187,7 @@
 
   function addMod(mod) {
     if (state.mods.some(m => m.id === mod.id)) return;
+    if (mod.src === "desecrated" && state.mods.some(m => m.src === "desecrated")) return; // one desecrated slot per item
     state.mods.push(mod); render();
   }
   function removeMod(id) { state.mods = state.mods.filter(m => m.id !== id); render(); }
@@ -202,6 +210,7 @@
       left.append(el("span", "tag " + (m.side === "prefix" ? "pre" : (m.side === "suffix" ? "suf" : "ess")), m.side.slice(0, 3).toUpperCase()));
       left.append(el("span", "t", " " + m.text));
       if (m.essence_only) left.append(el("span", "tag ess", " essence-only"));
+      if (m.src === "desecrated") left.append(el("span", "tag ess", " desecrate-only"));
       const x = el("span", "x", "✕"); x.title = "remove"; x.onclick = () => removeMod(m.id);
       row.append(left); row.append(x); mc.append(row);
     });
@@ -236,9 +245,12 @@
     plan.routes.forEach((route, ri) => {
       const det = el("details", "route"); if (ri === 0) det.open = true;
       const sum = el("summary");
-      sum.append(el("div", "rname", `${route.name}<span class="chev">▾</span>`));
+      const badge = route.recommended ? `<span style="background:#2e9b6b;color:#06140d;font-weight:800;padding:1px 7px;border-radius:8px;font-size:10px;letter-spacing:.4px;margin-right:7px;vertical-align:middle">★ BEST PATH</span>` : "";
+      sum.append(el("div", "rname", `${badge}${route.name}<span class="chev">▾</span>`));
       sum.append(el("div", "rtag", route.tagline));
       sum.append(el("div", "rbest", "Best for: " + route.best));
+      if (route.effortLabel) sum.append(el("div", "rtag", `<span style="opacity:.8">Effort: ${route.effortLabel}</span>`));
+      if (route.warning) sum.append(el("div", "rtag", `<span style="color:#e7a14b;font-weight:600">⚠ ${route.warning}</span>`));
       det.append(sum);
 
       const steps = el("div", "steps");

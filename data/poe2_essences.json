@@ -1,0 +1,2173 @@
+{
+ "_meta": {
+  "source": "https://poe2db.tw/us/Essence (cached markdown render)",
+  "built": "2026-06-21T10:30:13.673694Z",
+  "count": 81,
+  "note": "Real per-item-class guaranteed-mod table. tier=Lesser|Normal|Greater|Perfect; mode=magic_to_rare (add) | remove_add (Perfect)."
+ },
+ "essences": [
+  {
+   "name": "Lesser Essence of the Body",
+   "family": "Body",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour or Belt",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt"
+     ],
+     "mod": "+(30—39) to maximum Life"
+    },
+    {
+     "classes_raw": "Jewellery",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "+(20—29) to maximum Life"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of the Mind",
+   "family": "Mind",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Belt, Boots, Gloves, Helmet or Jewellery",
+     "classes": [
+      "Belt",
+      "Boots",
+      "Gloves",
+      "Helmet",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(25—34) to maximum Mana"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Enhancement",
+   "family": "Enhancement",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "(27—42)% increased Armour, Evasion or Energy Shield"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Abrasion",
+   "family": "Abrasion",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (4—6) to (7—11) Physical Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (5—8) to (10—15) Physical Damage"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Flames",
+   "family": "Flames",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (4—6) to (7—10) Fire Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (6—9) to (10—16) Fire Damage"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Ice",
+   "family": "Ice",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (3—5) to (6—9) Cold Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (5—8) to (9—14) Cold Damage"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Electricity",
+   "family": "Electricity",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds 1 to (13—19) Lightning Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (1—2) to (19—27) Lightning Damage"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Ruin",
+   "family": "Ruin",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(4—7)% to Chaos Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Battle",
+   "family": "Battle",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "+(61—84) to Accuracy Rating"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Sorcery",
+   "family": "Sorcery",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(35—44)% increased Spell Damage"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(69—88)% increased Spell Damage"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Haste",
+   "family": "Haste",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Melee Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff"
+     ],
+     "mod": "(11—13)% increased Attack Speed"
+    },
+    {
+     "classes_raw": "Bow or Crossbow",
+     "classes": [
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "(8—10)% increased Attack Speed"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of the Infinite",
+   "family": "Infinite",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Equipment",
+     "classes": [
+      "Amulet",
+      "Belt",
+      "Body Armour",
+      "Boots",
+      "Bow",
+      "Buckler",
+      "Claw",
+      "Crossbow",
+      "Dagger",
+      "Flail",
+      "Focus",
+      "Gloves",
+      "Helmet",
+      "One Hand Axe",
+      "One Hand Mace",
+      "One Hand Sword",
+      "Quiver",
+      "Ring",
+      "Sceptre",
+      "Shield",
+      "Spear",
+      "Staff",
+      "Talisman",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Two Hand Sword",
+      "Wand",
+      "Warstaff"
+     ],
+     "mod": "+(9—12) to Strength, Dexterity or Intelligence"
+    }
+   ]
+  },
+  {
+   "name": "Essence of the Body",
+   "family": "Body",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Belt, Body Armour, Helmet or Shield",
+     "classes": [
+      "Belt",
+      "Body Armour",
+      "Helmet",
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "+(85—99) to maximum Life"
+    },
+    {
+     "classes_raw": "Amulet, Boots, Gloves or Ring",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Boots",
+      "Gloves",
+      "Ring"
+     ],
+     "mod": "+(70—84) to maximum Life"
+    }
+   ]
+  },
+  {
+   "name": "Essence of the Mind",
+   "family": "Mind",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Belt, Boots, Gloves or Helmet",
+     "classes": [
+      "Belt",
+      "Boots",
+      "Gloves",
+      "Helmet"
+     ],
+     "mod": "+(65—79) to maximum Mana"
+    },
+    {
+     "classes_raw": "Jewellery",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "+(80—89) to maximum Mana"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Enhancement",
+   "family": "Enhancement",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "(56—67)% increased Armour, Evasion or Energy Shield"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Abrasion",
+   "family": "Abrasion",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (10—15) to (18—26) Physical Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (14—21) to (25—37) Physical Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Flames",
+   "family": "Flames",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (20—24) to (32—37) Fire Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (30—37) to (45—56) Fire Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Ice",
+   "family": "Ice",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (17—20) to (26—32) Cold Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (25—30) to (38—46) Cold Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Electricity",
+   "family": "Electricity",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (1—3) to (55—60) Lightning Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (1—4) to (80—88) Lightning Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Ruin",
+   "family": "Ruin",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(8—11)% to Chaos Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Battle",
+   "family": "Battle",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "+(124—167) to Accuracy Rating"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Sorcery",
+   "family": "Sorcery",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(55—64)% increased Spell Damage"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(109—128)% increased Spell Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Haste",
+   "family": "Haste",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Melee Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff"
+     ],
+     "mod": "(17—19)% increased Attack Speed"
+    },
+    {
+     "classes_raw": "Bow or Crossbow",
+     "classes": [
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "(11—13)% increased Attack Speed"
+    }
+   ]
+  },
+  {
+   "name": "Essence of the Infinite",
+   "family": "Infinite",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Equipment",
+     "classes": [
+      "Amulet",
+      "Belt",
+      "Body Armour",
+      "Boots",
+      "Bow",
+      "Buckler",
+      "Claw",
+      "Crossbow",
+      "Dagger",
+      "Flail",
+      "Focus",
+      "Gloves",
+      "Helmet",
+      "One Hand Axe",
+      "One Hand Mace",
+      "One Hand Sword",
+      "Quiver",
+      "Ring",
+      "Sceptre",
+      "Shield",
+      "Spear",
+      "Staff",
+      "Talisman",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Two Hand Sword",
+      "Wand",
+      "Warstaff"
+     ],
+     "mod": "+(17—20) to Strength, Dexterity or Intelligence"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of the Body",
+   "family": "Body",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Belt, Body Armour, Helmet or Shield",
+     "classes": [
+      "Belt",
+      "Body Armour",
+      "Helmet",
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "+(100—119) to maximum Life"
+    },
+    {
+     "classes_raw": "Amulet, Boots or Gloves",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Boots",
+      "Gloves"
+     ],
+     "mod": "+(85—99) to maximum Life"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of the Mind",
+   "family": "Mind",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Belt, Boots, Gloves or Helmet",
+     "classes": [
+      "Belt",
+      "Boots",
+      "Gloves",
+      "Helmet"
+     ],
+     "mod": "+(80—89) to maximum Mana"
+    },
+    {
+     "classes_raw": "Jewellery",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "+(90—104) to maximum Mana"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Enhancement",
+   "family": "Enhancement",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "(68—79)% increased Armour, Evasion or Energy Shield"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Abrasion",
+   "family": "Abrasion",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (16—24) to (28—42) Physical Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (23—35) to (39—59) Physical Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Flames",
+   "family": "Flames",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (35—44) to (56—71) Fire Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (56—70) to (84—107) Fire Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Ice",
+   "family": "Ice",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (31—38) to (47—59) Cold Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (46—57) to (70—88) Cold Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Electricity",
+   "family": "Electricity",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Adds (1—6) to (85—107) Lightning Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Adds (1—8) to (128—162) Lightning Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Ruin",
+   "family": "Ruin",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(16—19)% to Chaos Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Battle",
+   "family": "Battle",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon, Gloves or Quiver",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow",
+      "Gloves",
+      "Quiver"
+     ],
+     "mod": "+(237—346) to Accuracy Rating"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Sorcery",
+   "family": "Sorcery",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(75—89)% increased Spell Damage"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(149—188)% increased Spell Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Haste",
+   "family": "Haste",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Melee Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff"
+     ],
+     "mod": "(23—25)% increased Attack Speed"
+    },
+    {
+     "classes_raw": "Bow or Crossbow",
+     "classes": [
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "(14—16)% increased Attack Speed"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of the Infinite",
+   "family": "Infinite",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Equipment",
+     "classes": [
+      "Amulet",
+      "Belt",
+      "Body Armour",
+      "Boots",
+      "Bow",
+      "Buckler",
+      "Claw",
+      "Crossbow",
+      "Dagger",
+      "Flail",
+      "Focus",
+      "Gloves",
+      "Helmet",
+      "One Hand Axe",
+      "One Hand Mace",
+      "One Hand Sword",
+      "Quiver",
+      "Ring",
+      "Sceptre",
+      "Shield",
+      "Spear",
+      "Staff",
+      "Talisman",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Two Hand Sword",
+      "Wand",
+      "Warstaff"
+     ],
+     "mod": "+(25—27) to Strength, Dexterity or Intelligence"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of the Body",
+   "family": "Body",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Body Armour",
+     "classes": [
+      "Body Armour"
+     ],
+     "mod": "(8—10)% increased maximum Life"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of the Mind",
+   "family": "Mind",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Ring",
+     "classes": [
+      "Ring"
+     ],
+     "mod": "(4—6)% increased maximum Mana"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Enhancement",
+   "family": "Enhancement",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Amulet",
+     "classes": [
+      "Amulet",
+      "Talisman"
+     ],
+     "mod": "(20—30)% increased Global Defences"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Abrasion",
+   "family": "Abrasion",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Gain (15—20)% of Damage as Extra Physical Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Gain (25—33)% of Damage as Extra Physical Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Flames",
+   "family": "Flames",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Gain (15—20)% of Damage as Extra Fire Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Gain (25—33)% of Damage as Extra Fire Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Ice",
+   "family": "Ice",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Gain (15—20)% of Damage as Extra Cold Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Gain (25—33)% of Damage as Extra Cold Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Electricity",
+   "family": "Electricity",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "Gain (15—20)% of Damage as Extra Lightning Damage"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "Gain (25—33)% of Damage as Extra Lightning Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Ruin",
+   "family": "Ruin",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Body Armour",
+     "classes": [
+      "Body Armour"
+     ],
+     "mod": "(10—15)% of Physical Damage from Hits taken as Chaos Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Battle",
+   "family": "Battle",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "One Handed Melee Weapon or Bow",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Bow"
+     ],
+     "mod": "+3 to Level of all Attack Skills"
+    },
+    {
+     "classes_raw": "Two Handed Melee Weapon or Crossbow",
+     "classes": [
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Crossbow"
+     ],
+     "mod": "+5 to Level of all Attack Skills"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Sorcery",
+   "family": "Sorcery",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Wand",
+     "classes": [
+      "Wand"
+     ],
+     "mod": "+3 to Level of all Spell Skills"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "+5 to Level of all Spell Skills"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Haste",
+   "family": "Haste",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "(20—25)% chance to gain Onslaught on Killing Hits with this Weapon"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of the Infinite",
+   "family": "Infinite",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Amulet",
+     "classes": [
+      "Amulet",
+      "Talisman"
+     ],
+     "mod": "(7—10)% increased Strength, Dexterity or Intelligence"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Seeking",
+   "family": "Seeking",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "+(1.51—2.1)% to Critical Hit Chance"
+    },
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(34—39)% increased Critical Hit Chance for Spells"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(50—59)% increased Critical Hit Chance for Spells"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Seeking",
+   "family": "Seeking",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "+(2.11—2.7)% to Critical Hit Chance"
+    },
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(40—46)% increased Critical Hit Chance for Spells"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(60—69)% increased Critical Hit Chance for Spells"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Seeking",
+   "family": "Seeking",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Martial Weapon",
+     "classes": [
+      "One Hand Sword",
+      "One Hand Axe",
+      "One Hand Mace",
+      "Claw",
+      "Dagger",
+      "Flail",
+      "Spear",
+      "Two Hand Sword",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Warstaff",
+      "Bow",
+      "Crossbow"
+     ],
+     "mod": "+(3.11—3.8)% to Critical Hit Chance"
+    },
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(47—53)% increased Critical Hit Chance for Spells"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(70—79)% increased Critical Hit Chance for Spells"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Seeking",
+   "family": "Seeking",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Body Armour",
+     "classes": [
+      "Body Armour"
+     ],
+     "mod": "Hits against you have (40—50)% reduced Critical Damage Bonus"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Hysteria",
+   "family": "Hysteria",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Helmet",
+     "classes": [
+      "Helmet"
+     ],
+     "mod": "+1 to Level of all Minion Skills"
+    },
+    {
+     "classes_raw": "Body Armour",
+     "classes": [
+      "Body Armour"
+     ],
+     "mod": "(64—97) to (97—145) Physical Thorns damage"
+    },
+    {
+     "classes_raw": "Gloves",
+     "classes": [
+      "Gloves"
+     ],
+     "mod": "(25—29)% increased Critical Damage Bonus"
+    },
+    {
+     "classes_raw": "Boots",
+     "classes": [
+      "Boots"
+     ],
+     "mod": "30% increased Movement Speed"
+    },
+    {
+     "classes_raw": "Ring",
+     "classes": [
+      "Ring"
+     ],
+     "mod": "(50—59)% increased Mana Regeneration Rate"
+    },
+    {
+     "classes_raw": "Amulet",
+     "classes": [
+      "Amulet",
+      "Talisman"
+     ],
+     "mod": "(19—21)% of Damage taken Recouped as Life"
+    },
+    {
+     "classes_raw": "Belt",
+     "classes": [
+      "Belt"
+     ],
+     "mod": "+(254—304) to Stun Threshold"
+    },
+    {
+     "classes_raw": "Shield",
+     "classes": [
+      "Shield",
+      "Buckler"
+     ],
+     "mod": "(20—24)% increased Block chance"
+    },
+    {
+     "classes_raw": "Quiver",
+     "classes": [
+      "Quiver"
+     ],
+     "mod": "(43—50)% increased Damage with Bow Skills"
+    },
+    {
+     "classes_raw": "Focus",
+     "classes": [
+      "Focus"
+     ],
+     "mod": "(41—45)% increased Energy Shield Recharge Rate"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Delirium",
+   "family": "Delirium",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Body Armour",
+     "classes": [
+      "Body Armour"
+     ],
+     "mod": "Allocates a random Notable Passive Skill"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Horror",
+   "family": "Horror",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Gloves or Boots",
+     "classes": [
+      "Gloves",
+      "Boots"
+     ],
+     "mod": "60% increased effect of Socketed Items"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Insanity",
+   "family": "Insanity",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Belt",
+     "classes": [
+      "Belt"
+     ],
+     "mod": "On Corruption, Item gains two Enchantments"
+    }
+   ]
+  },
+  {
+   "name": "Essence of the Abyss",
+   "family": "Abyss",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Equipment",
+     "classes": [
+      "Amulet",
+      "Belt",
+      "Body Armour",
+      "Boots",
+      "Bow",
+      "Buckler",
+      "Claw",
+      "Crossbow",
+      "Dagger",
+      "Flail",
+      "Focus",
+      "Gloves",
+      "Helmet",
+      "One Hand Axe",
+      "One Hand Mace",
+      "One Hand Sword",
+      "Quiver",
+      "Ring",
+      "Sceptre",
+      "Shield",
+      "Spear",
+      "Staff",
+      "Talisman",
+      "Two Hand Axe",
+      "Two Hand Mace",
+      "Two Hand Sword",
+      "Wand",
+      "Warstaff"
+     ],
+     "mod": "Mark of the Abyssal Lord"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Insulation",
+   "family": "Insulation",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(11—15)% to Fire Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Insulation",
+   "family": "Insulation",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(21—25)% to Fire Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Insulation",
+   "family": "Insulation",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(31—35)% to Fire Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Insulation",
+   "family": "Insulation",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Belt",
+     "classes": [
+      "Belt"
+     ],
+     "mod": "(26—30)% of Fire Damage taken Recouped as Life"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Thawing",
+   "family": "Thawing",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(11—15)% to Cold Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Thawing",
+   "family": "Thawing",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(21—25)% to Cold Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Thawing",
+   "family": "Thawing",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(31—35)% to Cold Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Thawing",
+   "family": "Thawing",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Helmet",
+     "classes": [
+      "Helmet"
+     ],
+     "mod": "(26—30)% of Cold Damage taken Recouped as Life"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Grounding",
+   "family": "Grounding",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(11—15)% to Lightning Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Grounding",
+   "family": "Grounding",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(21—25)% to Lightning Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Grounding",
+   "family": "Grounding",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Armour, Belt or Jewellery",
+     "classes": [
+      "Body Armour",
+      "Helmet",
+      "Gloves",
+      "Boots",
+      "Shield",
+      "Buckler",
+      "Belt",
+      "Amulet",
+      "Talisman",
+      "Ring"
+     ],
+     "mod": "+(31—35)% to Lightning Resistance"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Grounding",
+   "family": "Grounding",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Gloves",
+     "classes": [
+      "Gloves"
+     ],
+     "mod": "(26—30)% of Lightning Damage taken Recouped as Life"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Alacrity",
+   "family": "Alacrity",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(13—16)% increased Cast Speed"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(20—25)% increased Cast Speed"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Alacrity",
+   "family": "Alacrity",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(17—20)% increased Cast Speed"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(26—31)% increased Cast Speed"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Alacrity",
+   "family": "Alacrity",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(25—28)% increased Cast Speed"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(38—43)% increased Cast Speed"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Alacrity",
+   "family": "Alacrity",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Focus or Wand",
+     "classes": [
+      "Focus",
+      "Wand"
+     ],
+     "mod": "(18—20)% increased Mana Cost Efficiency"
+    },
+    {
+     "classes_raw": "Staff",
+     "classes": [
+      "Staff"
+     ],
+     "mod": "(28—32)% increased Mana Cost Efficiency"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Opulence",
+   "family": "Opulence",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Boots, Gloves, Helmet or Jewellery",
+     "classes": [
+      "Boots",
+      "Gloves",
+      "Helmet",
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "(6—10)% increased Rarity of Items found"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Opulence",
+   "family": "Opulence",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Boots, Gloves, Helmet or Jewellery",
+     "classes": [
+      "Boots",
+      "Gloves",
+      "Helmet",
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "(11—14)% increased Rarity of Items found"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Opulence",
+   "family": "Opulence",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Boots, Gloves, Helmet or Jewellery",
+     "classes": [
+      "Boots",
+      "Gloves",
+      "Helmet",
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "(15—18)% increased Rarity of Items found"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Opulence",
+   "family": "Opulence",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Gloves",
+     "classes": [
+      "Gloves"
+     ],
+     "mod": "(10—15)% increased Quantity of Gold Dropped by Slain Enemies"
+    }
+   ]
+  },
+  {
+   "name": "Lesser Essence of Command",
+   "family": "Command",
+   "tier": "Lesser",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Sceptre",
+     "classes": [
+      "Sceptre"
+     ],
+     "mod": "Allies in your Presence deal (35—44)% increased Damage"
+    }
+   ]
+  },
+  {
+   "name": "Essence of Command",
+   "family": "Command",
+   "tier": "Normal",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Sceptre",
+     "classes": [
+      "Sceptre"
+     ],
+     "mod": "Allies in your Presence deal (55—64)% increased Damage"
+    }
+   ]
+  },
+  {
+   "name": "Greater Essence of Command",
+   "family": "Command",
+   "tier": "Greater",
+   "mode": "magic_to_rare",
+   "grants": [
+    {
+     "classes_raw": "Sceptre",
+     "classes": [
+      "Sceptre"
+     ],
+     "mod": "Allies in your Presence deal (75—89)% increased Damage"
+    }
+   ]
+  },
+  {
+   "name": "Perfect Essence of Command",
+   "family": "Command",
+   "tier": "Perfect",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Sceptre",
+     "classes": [
+      "Sceptre"
+     ],
+     "mod": "Aura Skills have (15—20)% increased Magnitudes"
+    }
+   ]
+  }
+ ]
+}

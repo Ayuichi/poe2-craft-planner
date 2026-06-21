@@ -5,9 +5,9 @@
  * Design (from the handoff):
  *   - HYBRID brain: human-idiomatic STRATEGY TEMPLATES generate routes; a
  *     STATE-TRANSITION model (preconditions -> effects) validates each step is legal.
- *   - NO probability engine. 0.5 spawn weights are flattened to 1, so the only honest
- *     odds signal is "how many mods compete for an open slot" (uniform-approx). Every
- *     step is labelled deterministic / likely / gamble instead of given a %.
+ *   - ODDS from Craft of Exile's extrapolated weights (community estimates, not official):
+ *     each gamble shows "~X% per slam (1 in N)"; steps are also labelled
+ *     deterministic / likely / gamble. Desecration/essence = deterministic placements.
  *   - A path = a sequence of item STATES with a crafting ACTION between each. The goal
  *     sits at the end; each target mod gets a step that places it.
  *
@@ -28,39 +28,49 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Essence-family heuristic.
-  // The slim dataset has no essence -> guaranteed-mod map yet (documented gap), so we
-  // recover the common anchors by keyword. KB §3 only names some mappings precisely;
-  // where it doesn't (which resist essence is which element), we flag verify:true so the
-  // step tells the user to confirm on PoE2DB rather than inventing a fact.
+  // Essence lookup — DATA-DRIVEN (data/poe2_essences.json -> window.POE2.essences).
+  // Replaces the old keyword heuristic, which invented facts (it claimed a Greater
+  // Essence of Sorcery guaranteed "+Spell Skills" on an amulet: wrong tier, wrong mod,
+  // wrong item class). We now only claim an essence when poe2db actually lists that
+  // exact mod for that exact item class. No match -> null (honest: no essence route).
   // ---------------------------------------------------------------------------
-  const ESSENCE_RULES = [
-    [/to maximum Life\b/i,                         { essence: "Essence of the Body" }],
-    [/to maximum Mana\b/i,                         { essence: "Essence of the Mind" }],
-    [/to maximum Energy Shield\b/i,                { essence: "Essence of Enhancement" }],
-    [/increased (Armour|Evasion|Energy Shield)/i,  { essence: "Essence of Enhancement" }],
-    [/Adds .* Physical Damage/i,                   { essence: "Essence of Abrasion" }],
-    [/Adds .* Fire Damage|increased Fire/i,        { essence: "Essence of Flames" }],
-    [/Adds .* Cold Damage|increased Cold/i,        { essence: "Essence of Ice" }],
-    [/Adds .* Lightning Damage|increased Lightning/i, { essence: "Essence of Electricity" }],
-    [/Spell Damage|to .* Spell Skills/i,           { essence: "Essence of Sorcery" }],
-    [/increased Attack Speed/i,                    { essence: "Essence of Haste" }],
-    [/increased Cast Speed/i,                      { essence: "Essence of Alacrity" }],
-    [/Level of all .* Attack Skills/i,             { essence: "Essence of Battle" }],
-    [/Critical/i,                                  { essence: "Essence of Seeking" }],
-    [/to (Strength|Dexterity|Intelligence|all Attributes)\b/i, { essence: "Essence of the Infinite" }],
-    [/increased .*Rarity of Items/i,               { essence: "Essence of Opulence" }],
-    // single-element resist: KB lists Ruin/Insulation/Thawing/Grounding but not which
-    // element -> name generically and force a verify.
-    [/to .*Resistance/i,                           { essence: "the matching Resistance Essence", verify: true }],
-  ];
+  const TIER_ORDER = { Lesser: 0, Normal: 1, Greater: 2, Perfect: 3 };
 
-  // Return { essence, tier, verify } for a mod that a Greater Essence can guarantee, else null.
-  function essenceFor(mod) {
-    for (const [re, info] of ESSENCE_RULES) {
-      if (re.test(mod.text)) return { tier: "Greater", verify: false, ...info };
+  // Stat "family" signature: strip numbers/ranges/punctuation so the planner's mod text
+  // and poe2db's grant text compare on the stat phrase alone. Folds ascii '-' and
+  // poe2db's em/en-dash ranges to the same thing.
+  function statKey(text) {
+    return (text || "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  // Find the essence(s) that actually guarantee `mod` on `itemClass`. Returns null when
+  // none do. Prefers a Magic->Rare ADD essence (cleanest anchor) over a Perfect
+  // REMOVE+ADD. Shape:
+  //   { family, mode, classRaw, grantMod, best:{tier,name}, tiers:[{tier,name},...] }
+  function essenceFor(mod, itemClass, db) {
+    const list = db && db.essences;
+    if (!list || !itemClass || !mod) return null;
+    const key = statKey(mod.text);
+    const matches = [];
+    for (const e of list) {
+      for (const g of e.grants) {
+        if (g.classes.includes(itemClass) && statKey(g.mod) === key) {
+          matches.push({ name: e.name, family: e.family, tier: e.tier, mode: e.mode,
+                         grantMod: g.mod, classRaw: g.classes_raw });
+          break;
+        }
+      }
     }
-    return null;
+    if (!matches.length) return null;
+    const additive = matches.filter(m => m.mode === "magic_to_rare");
+    const chosen = (additive.length ? additive : matches)
+      .slice().sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
+    const best = chosen[0];
+    return {
+      family: best.family, mode: best.mode, classRaw: best.classRaw, grantMod: best.grantMod,
+      best: { tier: best.tier, name: best.name },
+      tiers: chosen.map(m => ({ tier: m.tier, name: m.name })),
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -87,6 +97,124 @@
     if (n <= 12) return "tight pool";
     if (n <= 30) return "moderate pool";
     return "wide pool";
+  }
+
+  // Weight-aware odds. CoE-extrapolated spawn weights (community estimates, not
+  // official) let us say "~X% per slam (1 in N)" instead of a bare pool count.
+  // modWeight = a mod's weight on THIS base at THIS ilvl (top eligible tier).
+  function modWeight(mod, baseName, ilvl) {
+    const lad = mod.bw && mod.bw[baseName];
+    if (!lad) return 0;
+    let w = 0;
+    for (const t of lad) if (t[0] <= ilvl && t[1] > w) w = t[1];
+    return w;
+  }
+  function poolWeight(elig, side, usedGroups, baseName, ilvl) {
+    let s = 0;
+    for (const m of elig) {
+      if (m.side !== side) continue;
+      if ((m.group || []).some(g => usedGroups.has(g))) continue;
+      s += modWeight(m, baseName, ilvl);
+    }
+    return s;
+  }
+  function oddsFor(tm, elig, usedGroups, baseName, ilvl) {
+    const count = competing(elig, tm.side, usedGroups);
+    const tw = modWeight(tm, baseName, ilvl);
+    const pw = poolWeight(elig, tm.side, usedGroups, baseName, ilvl);
+    let pct = null, one = null;
+    if (tw > 0 && pw > 0) { pct = Math.round((tw / pw) * 1000) / 10; one = Math.max(1, Math.round(pw / tw)); }
+    return { count, pct, one };
+  }
+  function oddsPhrase(od, side) {
+    if (od.one) return `${od.count} ${side}es compete; this one ≈ ${od.pct}% per slam (about 1 in ${od.one})`;
+    return `${od.count} ${side}es compete (${grindWord(od.count)})`;
+  }
+
+  // ---- "best path" brain: weight-based effort estimate + ranking -------------
+  // A mod's share of its side's open pool (real CoE weights). 1/share ~ expected slams.
+  function modShare(m, target, db, reqIlvl) {
+    const elig = eligibleMods(db, target.itemClass, target.baseTags, reqIlvl);
+    const tw = modWeight(m, target.baseName, reqIlvl);
+    const pw = poolWeight(elig, m.side, new Set(), target.baseName, reqIlvl);
+    return (tw > 0 && pw > 0) ? tw / pw : null;
+  }
+  function expectedSlams(m, target, db, reqIlvl) {
+    const sh = modShare(m, target, db, reqIlvl);
+    return sh ? Math.max(1, Math.round(1 / sh)) : 8;
+  }
+  // Estimated total effort for a route: guaranteed (anchor) mods ~1, gambled targets
+  // ~1/share. Lower = better; drives ranking + the recommended tag.
+  function scoreRoute(route, target, db, reqIlvl) {
+    let effort = 0; const seen = new Set();
+    for (const st of route.steps) for (const sm of st.state.mods) {
+      if (seen.has(sm.text) || sm.kind === "incidental" || sm.kind === "fixed") continue;
+      if (sm.kind === "anchor") {
+        seen.add(sm.text);
+        if (/Desecration/.test(route.name)) {
+          const full = target.mods.find(t => t.text === sm.text) || sm;
+          effort += desecrateReveals(full, target, db, reqIlvl);
+        } else if (/Fracture/.test(route.name)) {
+          effort += 8; // ~4 fracture attempts, weighted up for the brick risk
+        } else effort += 1; // essence anchor ~ 1 orb
+      }
+      else if (sm.kind === "target") {
+        seen.add(sm.text);
+        const full = target.mods.find(t => t.text === sm.text);
+        effort += full ? expectedSlams(full, target, db, reqIlvl) : 4;
+      }
+    }
+    if (/Alchemy/.test(route.name)) effort = Math.round(effort * 1.6); // swingiest brute force
+    return Math.max(1, effort);
+  }
+  // Expected Well reveals to land `m` by desecration: its weight-share of the COMBINED
+  // reveal pool (normal side pool + desecrated-exclusive mods), 3 shown per reveal.
+  function desecrateReveals(m, target, db, reqIlvl) {
+    const c = db.classes[target.itemClass];
+    const elig = eligibleMods(db, target.itemClass, target.baseTags, reqIlvl);
+    let pw = poolWeight(elig, m.side, new Set(), target.baseName, reqIlvl);
+    for (const d of (c.desecrated || [])) {
+      if (d.side === m.side && (d.tags || []).includes(target.baseName)) pw += modWeight(d, target.baseName, reqIlvl) || 1;
+    }
+    let tw = modWeight(m, target.baseName, reqIlvl);
+    if (!tw) { const dd = (c.desecrated || []).find(d => d.id === m.id); tw = dd ? (modWeight(dd, target.baseName, reqIlvl) || 1) : 1; }
+    if (!tw) tw = 1;
+    return Math.max(1, Math.round((pw / tw) / 3));
+  }
+
+  // Pool-separation literacy (the master targeting trick): a Rare caps at 3p/3s;
+  // filling one side FORCES exalts onto the other -> deterministic targeting.
+  function forcingNote(target) {
+    const p = target.mods.filter(m => m.side === "prefix").length;
+    const s = target.mods.filter(m => m.side === "suffix").length;
+    const lines = ["Pool-forcing (the key targeting trick): a Rare caps at 3 prefixes / 3 suffixes. Fill the side you DON'T need up to 3, and every later Exalt is FORCED onto the open side — no Sinistral/Dextral omen, no Annul-retry needed."];
+    if (p >= 3 && s < 3) lines.push("Here your 3 prefixes fill that pool, so suffix Exalts land on the guaranteed side once the prefixes are placed.");
+    else if (s >= 3 && p < 3) lines.push("Here your 3 suffixes fill that pool, so prefix Exalts land on the guaranteed side once the suffixes are placed.");
+    else if (p && s) lines.push(`Here you have ${p} prefix + ${s} suffix target(s): whichever side is rarer to hit, fill the OTHER side first to force it.`);
+    return lines.join(" ");
+  }
+
+  // Desecration lookup. A desecrated mod comes only from the Well of Souls (a bone) and
+  // is chosen from a revealed set, so placing a specific one is DETERMINISTIC (cost =
+  // retries). Omen of Light makes an Annul TARGET the desecrated mod (used to re-roll the
+  // reveal, or to swap it later). NOTE: it is NOT immune to a plain annul — only Fracture
+  // is true protection. Returns the desecrated-pool context if obtainable on this base.
+  function desecrateInfo(mod, itemClass, baseName, db) {
+    const c = db.classes[itemClass];
+    if (!c) return null;
+    const key = statKey(mod.text);
+    const des = c.desecrated || [];
+    const onBase = arr => arr.filter(x => x.side === mod.side && (x.tags || []).includes(baseName));
+    // The Well's reveal draws from BOTH the normal side pool AND the desecrated-exclusive
+    // mods. So a normal mod CAN be locked in via desecration; exclusive mods come ONLY this
+    // way. Returns null only if the mod can't appear in the reveal at all.
+    const exclusive = (mod.src === "desecrated") ||
+      des.some(d => d.side === mod.side && statKey(d.text) === key && (d.tags || []).includes(baseName));
+    const inNormal = c.prefixes.concat(c.suffixes)
+      .some(m => m.side === mod.side && statKey(m.text) === key && (m.tags || []).includes(baseName));
+    if (!exclusive && !inNormal) return null;
+    const poolN = onBase(des).length + onBase(c.prefixes.concat(c.suffixes)).length;
+    return { side: mod.side, exclusive, poolN };
   }
 
   // ---------------------------------------------------------------------------
@@ -119,12 +247,23 @@
   //   fills are honest gambles sized by the competing pool.
   // ===========================================================================
   function routeEssenceFill(target, db, reqIlvl) {
-    const anchor = target.mods.find(m => essenceFor(m));
-    if (!anchor) return null; // no anchorable mod -> this route doesn't apply
-    const ess = essenceFor(anchor);
+    // Anchor the HARDEST essence-forceable target: guaranteeing the rarest mod you
+    // can saves the most slams (this is what makes the route "best").
+    let anchor = null, ess = null, bestShare = Infinity;
+    for (const m of target.mods) {
+      const e = essenceFor(m, target.itemClass, db);
+      if (!e) continue;
+      const sh = modShare(m, target, db, reqIlvl);
+      const s = (sh == null) ? 0.5 : sh;
+      if (anchor === null || s < bestShare) { anchor = m; ess = e; bestShare = s; }
+    }
+    if (!anchor) return null; // nothing here is essence-forceable -> route doesn't apply
+
     const elig = eligibleMods(db, target.itemClass, target.baseTags, reqIlvl);
     const usedGroups = new Set();
     (anchor.group || []).forEach(g => usedGroups.add(g));
+    const tierVariants = ess.tiers.map(t => t.name);
+    const grantNote = `${ess.classRaw} mod “${ess.grantMod}”`;
 
     const steps = [];
     steps.push(mkStep(
@@ -132,36 +271,53 @@
       `Get a white (Normal) ${target.baseName} at item level ${reqIlvl}+. ilvl gates tiers — ${reqIlvl}+ unlocks every mod in this goal.`,
       "deterministic", "Normal", []));
 
-    steps.push(mkStep(
-      "Orb of Transmutation", ["Transmutation", "Greater Transmutation", "Perfect Transmutation"],
-      "Normal → Magic, adds one random mod. (A Greater/Perfect Transmute only guarantees a higher minimum tier on that throwaway mod — plain is fine here.)",
-      "gamble", "Magic", [INCIDENTAL]));
+    if (ess.mode === "magic_to_rare") {
+      // Lesser/Normal/Greater essence: applied to a MAGIC item, upgrades it to Rare and
+      // ADDS the guaranteed mod. So: white -> Transmute -> essence -> clear collateral -> fill.
+      steps.push(mkStep(
+        "Orb of Transmutation", ["Transmutation", "Greater Transmutation", "Perfect Transmutation"],
+        "Normal → Magic, adds one random mod. (A Greater/Perfect Transmute only guarantees a higher minimum tier on that throwaway mod — plain is fine here.)",
+        "gamble", "Magic", [INCIDENTAL]));
 
-    steps.push(mkStep(
-      `${ess.tier} ${ess.essence}`, ["Greater", "Perfect"],
-      `Magic → Rare and GUARANTEES “${anchor.text}”.${ess.verify ? " ⚠ Verify on PoE2DB which element this essence forces." : ""} This spends your ONE crafted-mod slot — no other essence/alloy/Runic-Ward enchant after this.`,
-      "deterministic", "Rare",
-      [targetMod(anchor, "anchor"), INCIDENTAL]));
+      steps.push(mkStep(
+        ess.best.name, tierVariants,
+        `Magic → Rare and GUARANTEES the ${grantNote}. Other tiers (${tierVariants.join(" / ")}) just raise the numeric floor. This spends your ONE crafted-mod slot — no other essence/alloy/Runic-Ward enchant after this.`,
+        "deterministic", "Rare",
+        [targetMod(anchor, "anchor"), INCIDENTAL]));
 
-    // The Transmute's collateral mod is still on the item. Removing it cleanly is the
-    // genuinely messy part — be honest about it instead of pretending it's free.
-    steps.push(mkStep(
-      "Clear the collateral", ["Orb of Annulment", "Chaos + Omen of Whittling"],
-      "The Transmute mod is probably not a target. If it sits on the opposite side from your anchor, Sinistral/Dextral Annulment removes it cleanly. If it shares your anchor's side, an Annul is a coin-flip — prefer Chaos + Omen of Whittling to delete the lowest-ilvl mod.",
-      "gamble", "Rare",
-      [targetMod(anchor, "anchor")]));
+      steps.push(mkStep(
+        "Clear the collateral", ["Orb of Annulment", "Chaos + Omen of Whittling"],
+        "The Transmute mod is probably not a target. If it sits on the opposite side from your anchor, Sinistral/Dextral Annulment removes it cleanly. If it shares your anchor's side, an Annul is a coin-flip — prefer Chaos + Omen of Whittling to delete the lowest-ilvl mod.",
+        "gamble", "Rare",
+        [targetMod(anchor, "anchor")]));
+    } else {
+      // Perfect essence: REMOVES a random mod and ADDS the guaranteed mod, and needs a
+      // RARE item. So: white -> alchemy/regal to a junk Rare -> Perfect essence swaps a
+      // junk mod for the anchor (steer the removal with a Crystallisation omen).
+      steps.push(mkStep(
+        "Make a junk Rare", ["Orb of Alchemy", "Transmutation → Regal Orb"],
+        "Normal → Rare with throwaway mods. A Perfect essence needs a Rare and will REMOVE one random mod, so you want a sacrificial mod (ideally on the anchor's side) for it to eat.",
+        "gamble", "Rare",
+        [INCIDENTAL]));
+
+      steps.push(mkStep(
+        ess.best.name, [ess.best.name, "+ Omen of Sinistral/Dextral Crystallisation"],
+        `Removes a random modifier and ADDS the guaranteed ${grantNote}. Pair with Omen of Sinistral (prefix) / Dextral (suffix) Crystallisation so it eats a mod from the side you DON'T need. This spends your ONE crafted-mod slot.`,
+        "deterministic", "Rare",
+        [targetMod(anchor, "anchor")]));
+    }
 
     // Fill each remaining target with a side-targeted Exalt.
     const placed = [targetMod(anchor, "anchor")];
     const remaining = target.mods.filter(m => m !== anchor).slice().sort(bySide);
     for (const m of remaining) {
       const omen = m.side === "prefix" ? "Sinistral Exaltation (prefix)" : "Dextral Exaltation (suffix)";
-      const pool = competing(elig, m.side, usedGroups);
+      const od = oddsFor(m, elig, usedGroups, target.baseName, reqIlvl);
       (m.group || []).forEach(g => usedGroups.add(g));
       placed.push(targetMod(m, "target"));
       steps.push(mkStep(
         "Exalted Orb + Omen", ["Exalted Orb", "Greater Exaltation (adds 2)"],
-        `Add a ${m.side} aiming for “${m.text}”. ${omen} forces the side; WHICH ${m.side} is still random — ${pool} ${m.side}es compete (${grindWord(pool)}). Re-roll the slot (Annul that side + Exalt again) until it lands.`,
+        `Add a ${m.side} aiming for “${m.text}”. ${omen} forces the side; WHICH ${m.side} is still random — ${oddsPhrase(od, m.side)}. Re-roll the slot (Annul that side + Exalt again) until it lands.`,
         "gamble", "Rare",
         placed.slice().sort(bySide)));
     }
@@ -174,7 +330,7 @@
 
     return {
       name: "Essence anchor → Exalt fill",
-      tagline: `Guarantee “${anchor.text}” with a ${ess.essence}, then slam the rest.`,
+      tagline: `Guarantee “${ess.grantMod}” with ${ess.best.name}, then slam the rest.`,
       best: "the cleanest endgame route when one target mod is essence-forceable",
       steps,
     };
@@ -212,24 +368,24 @@
 
     const placed = [];
     for (const { mod: m, kind } of seq) {
-      const pool = competing(elig, m.side, usedGroups);
+      const od = oddsFor(m, elig, usedGroups, target.baseName, reqIlvl);
       (m.group || []).forEach(g => usedGroups.add(g));
       placed.push(targetMod(m, "target"));
 
       let action, variants, detail, rarity;
       if (kind === "transmute") {
         action = "Orb of Transmutation"; variants = ["Transmutation", "Greater", "Perfect"]; rarity = "Magic";
-        detail = `Normal → Magic. Fish for “${m.text}” — ${pool} ${m.side}es eligible (${grindWord(pool)}). No scour in 0.5, so if it misses, salvage and re-buy a white base.`;
+        detail = `Normal → Magic. Fish for “${m.text}” — ${oddsPhrase(od, m.side)}. No scour in 0.5, so if it misses, salvage and re-buy a white base.`;
       } else if (kind === "augment") {
         action = "Orb of Augmentation"; variants = ["Augmentation", "Greater", "Perfect"]; rarity = "Magic";
-        detail = `Add the OTHER side while still Magic (a Magic item allows only 1 prefix + 1 suffix), aiming for “${m.text}” (${pool} ${m.side}es, ${grindWord(pool)}).`;
+        detail = `Add the OTHER side while still Magic (a Magic item allows only 1 prefix + 1 suffix), aiming for “${m.text}” ${oddsPhrase(od, m.side)}.`;
       } else if (kind === "regal") {
         action = "Regal Orb"; variants = ["Regal Orb", "Sinistral/Dextral Coronation (pick the side)"]; rarity = "Rare";
-        detail = `Magic → Rare, adds a mod. A Coronation omen forces the side toward “${m.text}” (${pool} ${m.side}es, ${grindWord(pool)}).`;
+        detail = `Magic → Rare, adds a mod. A Coronation omen forces the side toward “${m.text}” ${oddsPhrase(od, m.side)}.`;
       } else {
         const omen = m.side === "prefix" ? "Sinistral Exaltation" : "Dextral Exaltation";
         action = "Exalted Orb + Omen"; variants = ["Exalted Orb", "Greater Exaltation (adds 2)"]; rarity = "Rare";
-        detail = `${omen} adds a ${m.side} aiming for “${m.text}” (${pool} ${m.side}es, ${grindWord(pool)}). Annul-and-retry that side if it misses.`;
+        detail = `${omen} adds a ${m.side} aiming for “${m.text}” ${oddsPhrase(od, m.side)}. Annul-and-retry that side if it misses.`;
       }
       steps.push(mkStep(action, variants, detail, "gamble", rarity, placed.slice().sort(bySide)));
     }
@@ -295,21 +451,153 @@
     };
   }
 
+  // ===========================================================================
+  // STRATEGY TEMPLATE 4 — Desecration anchor (DETERMINISTIC placement for a mod with
+  //   NO essence). Bone + Necromancy omen forces the side; the Well reveal + Omen of
+  //   Light retry guarantees your mod (cost = retries, not luck). Omen of Light makes an
+  //   Annul TARGET the desecrated mod (to re-roll the reveal). NOTE: a desecrated mod is
+  //   NOT immune to a plain annul — only FRACTURE is true protection.
+  // ===========================================================================
+  function routeDesecrate(target, db, reqIlvl) {
+    let anchor = null, di = null, bestShare = Infinity;
+    for (const m of target.mods) {
+      const info = desecrateInfo(m, target.itemClass, target.baseName, db);
+      if (!info) continue;
+      if (m.src === "desecrated") { anchor = m; di = info; break; } // exclusive -> must desecrate
+      const sh = modShare(m, target, db, reqIlvl);
+      const sc = (sh == null) ? 0.5 : sh;
+      if (anchor === null || sc < bestShare) { anchor = m; di = info; bestShare = sc; }
+    }
+    if (!anchor) return null;
+
+    const elig = eligibleMods(db, target.itemClass, target.baseTags, reqIlvl);
+    const usedGroups = new Set(); (anchor.group || []).forEach(g => usedGroups.add(g));
+    const omen = anchor.side === "prefix" ? "Sinistral Necromancy" : "Dextral Necromancy";
+    const steps = [];
+
+    steps.push(mkStep("Acquire base", [],
+      `Get a white (Normal) ${target.baseName} at item level ${reqIlvl}+.`,
+      "deterministic", "Normal", []));
+    steps.push(mkStep("Orb of Transmutation", ["Transmutation"],
+      "Normal → Magic (one random mod, just scaffolding to reach Rare).",
+      "gamble", "Magic", [INCIDENTAL]));
+    steps.push(mkStep("Regal Orb", ["Regal Orb"],
+      "Magic → Rare so the item can be desecrated.",
+      "gamble", "Rare", [INCIDENTAL, INCIDENTAL]));
+    steps.push(mkStep(
+      "Desecrate at the Well of Souls",
+      ["Preserved/Ancient Bone (collarbone=jewellery, jawbone=weapon, rib=armour)", `+ Omen of ${omen}`, "+ Omen of Light (forces Annul onto the desecrated mod, to re-roll)"],
+      `${di.exclusive ? "“" + anchor.text + "” is desecrate-ONLY — the Well is the only way to get it. " : "Placing a normal mod DETERMINISTICALLY (you pick it at the Well). "}Add a desecrated ${anchor.side} with a bone; Omen of ${omen} forces the ${anchor.side} side. Reveal at the Well (drawn from the normal ${anchor.side} pool + the exclusive desecrated mods, ~${di.poolN} options); if it isn't “${anchor.text}”, run Omen of Light + an Annul — the omen forces the Annul onto the desecrated mod for sure, removing that bad reveal so you desecrate again. You WILL land it, cost = retries. It's also precisely REMOVABLE later (Omen of Light + Annul targets it) if you want to swap it. ⚠ But it is NOT immune to a stray annul — a plain Annul can remove it — so finish the rest with side-targeted (Sinistral/Dextral) removals.`,
+      "deterministic", "Rare", [targetMod(anchor, "anchor"), INCIDENTAL]));
+    steps.push(mkStep("Clear the scaffolding", ["Orb of Annulment", "Chaos + Omen of Whittling"],
+      "Remove the leftover junk — but a plain Annul CAN hit your desecrated mod too. Use Omen of Whittling (deletes the lowest-ilvl mod, i.e. the junk) or a side-targeted (Sinistral/Dextral) Annul on the junk's side so you don't lose the anchor.",
+      "gamble", "Rare", [targetMod(anchor, "anchor")]));
+
+    const placed = [targetMod(anchor, "anchor")];
+    const remaining = target.mods.filter(m => m !== anchor).slice().sort(bySide);
+    for (const m of remaining) {
+      const ex = m.side === "prefix" ? "Sinistral Exaltation (prefix)" : "Dextral Exaltation (suffix)";
+      const od = oddsFor(m, elig, usedGroups, target.baseName, reqIlvl);
+      (m.group || []).forEach(g => usedGroups.add(g));
+      placed.push(targetMod(m, "target"));
+      steps.push(mkStep("Exalted Orb + Omen", ["Exalted Orb", "Greater Exaltation (adds 2)"],
+        `Add a ${m.side} aiming for “${m.text}”. ${ex} forces the side — ${oddsPhrase(od, m.side)}. Annul-and-retry with a ${m.side}-targeted (Sinistral/Dextral) Annul or Whittling so you reroll only this slot — a plain Annul could remove your desecrated mod.`,
+        "gamble", "Rare", placed.slice().sort(bySide)));
+    }
+    steps.push(mkStep("Divine Orb (finish)", ["Divine Orb", "Omen of Sanctification"],
+      "Perfect the numeric rolls once every target is present.",
+      "likely", "Rare", target.mods.slice().sort(bySide).map(m => targetMod(m, "fixed"))));
+
+    return {
+      name: "Desecration anchor → fill",
+      tagline: di.exclusive
+        ? `“${anchor.text}” is desecrate-only — guarantee it at the Well, then build around it.`
+        : `Place “${anchor.text}” deterministically (and keep it precisely swappable), then craft the rest.`,
+      best: di.exclusive
+        ? "the ONLY path when a target mod is desecrate-exclusive"
+        : "when you want to protect your hardest mod so the rest can be crafted safely",
+      steps,
+    };
+  }
+
+  // ===========================================================================
+  // STRATEGY TEMPLATE 5 — Fracture-protected → free-roll. A Fracturing Orb permanently
+  //   locks ONE RANDOM mod (needs a 4+ mod Rare). It's a GAMBLE that can BRICK: a wrong
+  //   fracture locks the wrong mod and you restart. But once your hard mod is fractured
+  //   it's immune to annul/chaos, so the OTHER affixes become a risk-free playground.
+  // ===========================================================================
+  function routeFracture(target, db, reqIlvl) {
+    let anchor = null, bestShare = Infinity;
+    for (const m of target.mods) {
+      if (m.src === "desecrated") continue; // desecrated mods can't be fractured
+      const sh = modShare(m, target, db, reqIlvl);
+      const sc = (sh == null) ? 0.5 : sh;
+      if (anchor === null || sc < bestShare) { anchor = m; bestShare = sc; }
+    }
+    if (!anchor) return null;
+    const elig = eligibleMods(db, target.itemClass, target.baseTags, reqIlvl);
+    const usedGroups = new Set(); (anchor.group || []).forEach(g => usedGroups.add(g));
+    const steps = [];
+
+    steps.push(mkStep("Acquire a 4-mod Rare that has the hard mod",
+      ["Buy a cheap multi-mod base that already shows it", "or Alchemy + re-buy on a miss"],
+      `Fracturing needs a Rare with 4+ mods. Get one that already has “${anchor.text}” plus filler — buy CHEAP, because the next step misses often and you re-buy.`,
+      "gamble", "Rare", [targetMod(anchor, "target"), INCIDENTAL, INCIDENTAL, INCIDENTAL]));
+
+    steps.push(mkStep("Fracturing Orb  ⚠ can BRICK",
+      ["Fracturing Orb", "(first: desecrate a filler to drop 1-in-4 → 1-in-3)"],
+      `Locks ONE RANDOM mod forever. You want it on “${anchor.text}” — about 1 in 4 (every non-desecrated mod is a candidate). A WRONG fracture locks the wrong mod and bricks the plan: salvage/resell and restart with a fresh cheap base. Trick: a desecrated mod can't be fractured, so desecrate one filler first and it's 1 in 3.`,
+      "gamble", "Rare", [targetMod(anchor, "anchor")]));
+
+    const placed = [targetMod(anchor, "anchor")];
+    const remaining = target.mods.filter(m => m !== anchor).slice().sort(bySide);
+    for (const m of remaining) {
+      const od = oddsFor(m, elig, usedGroups, target.baseName, reqIlvl);
+      (m.group || []).forEach(g => usedGroups.add(g));
+      placed.push(targetMod(m, "target"));
+      const era = m.side === "prefix" ? "Sinistral Erasure (chaos prefixes only)" : "Dextral Erasure (chaos suffixes only)";
+      steps.push(mkStep("Roll freely (fracture protects)",
+        ["Chaos + " + era, "Exalt + Sinistral/Dextral Exaltation"],
+        `Aim for “${m.text}” — ${oddsPhrase(od, m.side)}. The fractured “${anchor.text}” can't be removed, so reroll this side as much as you want with ZERO risk to it.`,
+        "gamble", "Rare", placed.slice().sort(bySide)));
+    }
+    steps.push(mkStep("Divine Orb (finish)", ["Divine Orb", "Omen of Sanctification"],
+      "Perfect the rolls once everything is present.",
+      "likely", "Rare", target.mods.slice().sort(bySide).map(m => targetMod(m, "fixed"))));
+
+    return {
+      name: "Fracture-protected → free-roll",
+      tagline: `Lock “${anchor.text}” with a Fracturing Orb (a gamble), then reroll the rest risk-free.`,
+      best: "to protect ONE very hard mod so you can freely grind the other slots — but the fracture itself can brick",
+      warning: `Fracturing locks a RANDOM mod (~1 in 4). A wrong fracture bricks the plan and forces a restart — use a cheap base, and desecrate a filler mod first to improve the odds to ~1 in 3.`,
+      steps,
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Advanced-alternative notes. These tactics are real and idiomatic but the slim
   // dataset can't yet generate exact steps for them (no alloy/desecrate/essence-mod
   // map), so we surface them honestly as pointers rather than faking precision.
   // ---------------------------------------------------------------------------
-  function buildNotes(target) {
-    const notes = [];
-    const anchor = target.mods.find(m => essenceFor(m));
-    if (anchor) {
-      const ess = essenceFor(anchor);
-      notes.push(`Perfect Essence swap: already have a finished Rare? A Perfect ${ess.essence} removes one random mod and forces “${anchor.text}” in a single orb — pair with Sinistral/Dextral Crystallisation to protect the side you care about.`);
+  function buildNotes(target, db) {
+    const notes = [forcingNote(target)];
+    let ess = null;
+    for (const m of target.mods) {
+      const e = essenceFor(m, target.itemClass, db);
+      if (e) { ess = e; break; }
     }
-    notes.push("Fracture to protect: before Chaos/Annul spamming, a Fracturing Orb can lock one hard-won mod in place so it survives the rerolls (fracture → annul/chaos the rest freely).");
-    notes.push("Runic Alloys & Lich mods: some endgame mods only come from a Runic Alloy or from Desecration at the Well of Souls. An Alloy mod uses your one crafted slot (mutually exclusive with essences); a desecrated mod uses the separate one-desecrated slot. Cross-check the target on PoE2DB to see if any mod here is alloy/desecrate-only — the dataset doesn't flag those yet.");
-    notes.push("Odds caveat: 0.5 spawn weights are flattened to 1, so 'competing pool' counts are a grindiness proxy, not true probabilities. Treat 'tight/moderate/wide pool' as relative effort.");
+    if (ess && ess.mode === "magic_to_rare") {
+      // Only worth surfacing the Perfect-swap tactic when one actually exists for this mod.
+      const perfect = (db.essences || []).find(e =>
+        e.family === ess.family && e.mode === "remove_add" &&
+        e.grants.some(g => g.classes.includes(target.itemClass)));
+      if (perfect) {
+        notes.push(`Perfect Essence swap: already have a finished Rare? ${perfect.name} removes one random mod and forces its guaranteed ${target.itemClass} mod in a single orb — pair with Sinistral/Dextral Crystallisation to protect the side you care about.`);
+      }
+    }
+    notes.push("Two different tools, often confused. FRACTURE = true immunity: a fractured mod can't be removed by annul/chaos at all, so once you fracture e.g. a prefix you can chaos/exalt-spam the OTHER side with zero risk to it. DESECRATION is NOT immune — a plain annul can still remove a desecrated mod — but Omen of Light lets you TARGET it (an Annul under Omen of Light always hits the desecrated mod), making it deterministically placeable and precisely swappable. Use FRACTURE to lock, DESECRATION to place-and-control.");
+    notes.push("Runic Alloys & Lich mods: some endgame mods only come from a Runic Alloy or from Desecration at the Well of Souls. An Alloy mod uses your one crafted slot (mutually exclusive with essences); a desecrated mod uses the separate one-desecrated slot. Cross-check the target on PoE2DB to see if any mod here is alloy/desecrate-only.");
+    notes.push("Odds note: '~X% per slam' uses Craft of Exile's extrapolated weights — community estimates, not official GGG data. Treat them as solid relative effort, not exact probability.");
     return notes;
   }
 
@@ -323,13 +611,41 @@
     const reqIlvl = Math.max(1, ...target.mods.map(m => m.ilvl || 1));
 
     const routes = [];
-    const r1 = routeEssenceFill(target, db, reqIlvl);
-    if (r1) routes.push(r1);
-    routes.push(routeLadder(target, db, reqIlvl));
-    // Alchemy fits a Rare; for a Magic goal it's not applicable.
-    if (target.rarity === "Rare") routes.push(routeAlchemy(target, db, reqIlvl));
+    const hasExclusive = target.mods.some(m => m.src === "desecrated");
+    if (hasExclusive) {
+      // Only desecration can make an exclusive mod -> slam routes can't produce it.
+      const r0 = routeDesecrate(target, db, reqIlvl);
+      if (r0) routes.push(r0);
+    } else {
+      const r1 = routeEssenceFill(target, db, reqIlvl);
+      if (r1) routes.push(r1);
+      routes.push(routeLadder(target, db, reqIlvl));
+      // Alchemy fits a Rare; for a Magic goal it's not applicable.
+      if (target.rarity === "Rare") routes.push(routeAlchemy(target, db, reqIlvl));
+      // Optional "lock the hardest mod" via desecration — only worth showing when
+      // something is grindy enough that protecting it pays off.
+      const hardest = Math.max(...target.mods.map(m => expectedSlams(m, target, db, reqIlvl)));
+      if (hardest >= 4) {
+        const r0 = routeDesecrate(target, db, reqIlvl);
+        if (r0) routes.push(r0);
+      }
+      // Fracture is a heavy, can-brick protection tool — only worth it for a VERY hard
+      // mod on a Rare with other slots to grind safely afterwards.
+      if (target.rarity === "Rare" && hardest >= 8 && target.mods.length >= 2) {
+        const rf = routeFracture(target, db, reqIlvl);
+        if (rf) routes.push(rf);
+      }
+    }
 
-    return { routes, notes: buildNotes(target), reqIlvl };
+    // Rank by estimated effort from real weights. Best first; tag the recommendation.
+    for (const r of routes) {
+      r.effort = scoreRoute(r, target, db, reqIlvl);
+      r.effortLabel = `≈ ${r.effort} targeted slams (est.)`;
+    }
+    routes.sort((a, b) => a.effort - b.effort);
+    if (routes.length) routes[0].recommended = true;
+
+    return { routes, notes: buildNotes(target, db), reqIlvl };
   }
 
   // ---- expose (node tests + browser), mirroring app.js ----
