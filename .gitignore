@@ -1,0 +1,19 @@
+# Pipeline cache: raw RePoE2 downloads (large, regenerable via the pipeline)
+pipeline/.cache/
+*.min.json.bak
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

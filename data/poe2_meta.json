@@ -1,0 +1,8 @@
+{
+  "source": "https://repoe-fork.github.io/poe2/",
+  "built_at": "2026-06-21T08:58:26.354147Z",
+  "item_classes": 30,
+  "craftable_prefix_suffix_mods": 2585,
+  "essence_mods": 117,
+  "note": "0.5 spawn weights are flattened to 1; eligibility is tag-based, odds are uniform-approx only."
+}

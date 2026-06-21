@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoE2 Craft Planner — Target Builder</title>
+<style>
+  :root{
+    --bg:#15110c; --panel:#1f1812; --panel2:#271e16; --edge:#3a2c1e;
+    --txt:#e8dcc8; --muted:#9c8a72; --gold:#c8a85a; --gold2:#e0c178;
+    --blue:#7fb0e0; --good:#7fc08a; --warn:#e0a85a; --bad:#e07a6a; --prefix:#6fa8d6; --suffix:#d6b86f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+  header{padding:10px 18px;border-bottom:1px solid var(--edge);display:flex;align-items:baseline;gap:12px;background:var(--panel)}
+  header h1{font-size:16px;margin:0;color:var(--gold2);font-weight:600;letter-spacing:.3px}
+  header .sub{color:var(--muted);font-size:12px}
+  .wrap{display:grid;grid-template-columns:minmax(380px,1fr) minmax(420px,1.2fr);gap:14px;padding:14px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--edge);border-radius:8px}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin:0;padding:10px 14px;border-bottom:1px solid var(--edge)}
+  .body{padding:14px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  select,input[type=text],input[type=number],textarea{
+    width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--edge);
+    border-radius:6px;padding:8px 10px;font:inherit}
+  textarea{min-height:150px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+  .tabs{display:flex;gap:4px;padding:10px 14px 0}
+  .tab{padding:7px 14px;border:1px solid var(--edge);border-bottom:none;border-radius:6px 6px 0 0;
+    background:var(--panel2);color:var(--muted);cursor:pointer;font-size:13px}
+  .tab.active{background:var(--panel);color:var(--gold2);border-color:var(--gold)}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .btn{background:var(--gold);color:#241a0e;border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--gold2)}
+  .btn.sm{padding:4px 10px;font-size:12px}
+  .btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--edge)}
+  .hint{color:var(--muted);font-size:12px;margin-top:6px}
+
+  /* item card */
+  .item{background:#120d08;border:1px solid var(--edge);border-radius:8px;overflow:hidden;margin-top:4px}
+  .item .name{padding:8px 12px;text-align:center;background:linear-gradient(#2a2016,#1d160e);color:var(--gold2);font-weight:600}
+  .item .base{text-align:center;color:var(--muted);font-size:12px;padding:0 12px 8px}
+  .item .meta{display:flex;justify-content:center;gap:14px;font-size:11px;color:var(--muted);padding:6px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+  .mods{padding:8px 12px;min-height:30px}
+  .modline{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px dashed #2a2016}
+  .modline:last-child{border-bottom:none}
+  .modline .t{color:#b9c9e8}
+  .modline .tag{font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:1px 5px;border-radius:3px;white-space:nowrap}
+  .tag.pre{background:#1d2c3d;color:var(--prefix)}
+  .tag.suf{background:#332b18;color:var(--suffix)}
+  .tag.ess{background:#2a1d33;color:#c79be0}
+  .x{cursor:pointer;color:var(--bad);font-weight:700;padding:0 4px}
+  .slotcount{font-size:11px;color:var(--muted)}
+
+  /* mod picker */
+  .picker{margin-top:12px;border-top:1px solid var(--edge);padding-top:10px}
+  .famlist{max-height:340px;overflow:auto;border:1px solid var(--edge);border-radius:6px;margin-top:6px}
+  .fam{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #251c14}
+  .fam:hover{background:var(--panel2)}
+  .fam .ft{flex:1;font-size:13px}
+  .fam .side{font-size:10px;text-transform:uppercase;width:46px}
+  .fam select{width:auto;flex:0 0 auto;padding:3px 6px;font-size:11px}
+  .legal{margin-top:12px}
+  .msg{padding:7px 10px;border-radius:6px;margin:6px 0;font-size:12px;border:1px solid}
+  .msg.ok{background:#15241a;border-color:#2c4a35;color:var(--good)}
+  .msg.bad{background:#2a1512;border-color:#4a2b25;color:var(--bad)}
+  .msg.warn{background:#2a2212;border-color:#4a3d20;color:var(--warn)}
+  .plan-empty{color:var(--muted);padding:20px;text-align:center;font-style:italic}
+  code{background:#120d08;padding:1px 5px;border-radius:3px;color:var(--gold2)}
+</style>
+</head>
+<body>
+<header>
+  <h1>PoE2 Craft Planner</h1>
+  <span class="sub" id="sub">Target Builder &amp; Legality Checker · patch <span id="patch">…</span></span>
+</header>
+
+<div class="wrap">
+  <!-- LEFT: build the goal -->
+  <div class="panel">
+    <div class="tabs">
+      <div class="tab active" data-tab="build">Build manually</div>
+      <div class="tab" data-tab="paste">Paste item</div>
+    </div>
+
+    <div class="body">
+      <div id="tab-build">
+        <div class="row">
+          <div>
+            <label>Item class</label>
+            <select id="classSel"></select>
+          </div>
+          <div>
+            <label>Base</label>
+            <select id="baseSel"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Item level</label>
+            <input type="number" id="ilvl" min="1" max="100" value="82">
+          </div>
+          <div>
+            <label>Target rarity</label>
+            <select id="raritySel">
+              <option>Rare</option><option>Magic</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="picker">
+          <label>Add modifiers <span class="hint" id="pickHint"></span></label>
+          <input type="text" id="modSearch" placeholder="Search eligible mods (e.g. life, resistance, spell)…">
+          <div class="famlist" id="famlist"></div>
+        </div>
+      </div>
+
+      <div id="tab-paste" style="display:none">
+        <label>Paste a PoE2 item (in-game Ctrl+C)</label>
+        <textarea id="pasteBox" placeholder="Item Class: Sceptres&#10;Rarity: Rare&#10;...&#10;Item Level: 82&#10;--------&#10;+25 to maximum Mana&#10;..."></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="parseBtn">Parse item</button>
+          <button class="btn ghost" id="parseClear">Clear</button>
+        </div>
+        <div id="parseReport"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: goal preview + (future) plan -->
+  <div class="panel">
+    <h2>Goal item</h2>
+    <div class="body">
+      <div class="item" id="goalCard">
+        <div class="name" id="goalName">No base selected</div>
+        <div class="base" id="goalBase"></div>
+        <div class="meta">
+          <span id="goalRarity">Rare</span><span id="goalIlvl">ilvl —</span>
+          <span class="slotcount" id="goalSlots">0P / 0S</span>
+        </div>
+        <div class="mods" id="goalMods"></div>
+      </div>
+
+      <div class="legal" id="legal"></div>
+
+      <h2 style="margin-top:16px;border-top:1px solid var(--edge)">Crafting path</h2>
+      <div class="plan-empty">The path planner plugs in here next. For now this panel
+        validates that your goal is actually craftable.</div>
+    </div>
+  </div>
+</div>
+
+<script src="poe2_data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
