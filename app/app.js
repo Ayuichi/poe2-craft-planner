@@ -210,6 +210,78 @@
     const r = checkLegality(state);
     const box = $("#legal"); box.innerHTML = "";
     r.messages.forEach(msg => box.append(el("div", "msg " + (msg.kind === "ok" ? "ok" : msg.kind === "bad" ? "bad" : "warn"), msg.text)));
+
+    renderPlan(r.ok);
+  }
+
+  // ---- Stage 3: render the crafting path(s) from planner.js ----
+  function renderPlan(legal) {
+    const out = $("#planOut");
+    if (!out) return;
+    out.innerHTML = "";
+    if (!state.mods.length) {
+      out.append(el("div", "plan-empty", "Add the modifiers you want — the path planner will lay out how to craft it."));
+      return;
+    }
+    if (!legal) {
+      out.append(el("div", "plan-empty", "Fix the legality problems above first — there's no path to an item that can't exist."));
+      return;
+    }
+    const planner = window.POE2Planner;
+    if (!planner) { out.append(el("div", "plan-empty", "planner.js not loaded.")); return; }
+
+    const plan = planner.planRoutes(state, DB);
+    out.append(el("div", "hint", `Base needs item level ${plan.reqIlvl}+ to access every tier in this goal. ${plan.routes.length} route(s):`));
+
+    plan.routes.forEach((route, ri) => {
+      const det = el("details", "route"); if (ri === 0) det.open = true;
+      const sum = el("summary");
+      sum.append(el("div", "rname", `${route.name}<span class="chev">▾</span>`));
+      sum.append(el("div", "rtag", route.tagline));
+      sum.append(el("div", "rbest", "Best for: " + route.best));
+      det.append(sum);
+
+      const steps = el("div", "steps");
+      route.steps.forEach((s, i) => {
+        const row = el("div", "step");
+        row.append(el("div", "num", String(i + 1)));
+        const body = el("div", "");
+        const act = el("div", "act");
+        act.append(el("span", "actname", s.action));
+        act.append(el("span", "det " + s.determinism, s.determinism));
+        body.append(act);
+        if (s.variants && s.variants.length)
+          body.append(el("div", "variants", "options: " + s.variants.map(v => `<b>${v}</b>`).join(" · ")));
+        body.append(el("div", "detail", s.detail));
+        body.append(miniState(s.state));
+        row.append(body);
+        steps.append(row);
+      });
+      det.append(steps);
+      out.append(det);
+    });
+
+    if (plan.notes && plan.notes.length) {
+      const nb = el("div", "notes");
+      nb.append(el("h3", "", "Advanced alternatives & caveats"));
+      const ul = el("ul"); ul.style.margin = "0"; ul.style.paddingLeft = "16px";
+      plan.notes.forEach(n => ul.append(el("li", "", n)));
+      nb.append(ul);
+      out.append(nb);
+    }
+  }
+
+  // a compact "resulting item" chip-row for a step's state
+  function miniState(st) {
+    const wrap = el("div", "ministate");
+    wrap.append(el("span", "ms-rar", st.rarity));
+    if (!st.mods.length) { wrap.append(el("span", "ms-mod incidental", "(blank)")); return wrap; }
+    st.mods.forEach((m, i) => {
+      if (i) wrap.append(el("span", "ms-arrow", "·"));
+      const side = m.side === "prefix" ? "P" : m.side === "suffix" ? "S" : "?";
+      wrap.append(el("span", "ms-mod " + (m.kind || "fixed"), `${side} ${m.text}`));
+    });
+    return wrap;
   }
 
   // tabs

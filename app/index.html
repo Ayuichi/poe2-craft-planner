@@ -66,6 +66,40 @@
   .msg.warn{background:#2a2212;border-color:#4a3d20;color:var(--warn)}
   .plan-empty{color:var(--muted);padding:20px;text-align:center;font-style:italic}
   code{background:#120d08;padding:1px 5px;border-radius:3px;color:var(--gold2)}
+
+  /* crafting path */
+  .route{border:1px solid var(--edge);border-radius:8px;margin:12px 0;background:var(--panel)}
+  .route>summary{cursor:pointer;list-style:none;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+  .route>summary::-webkit-details-marker{display:none}
+  .route>summary:hover{background:var(--panel2)}
+  .route .rname{color:var(--gold2);font-weight:600;font-size:13px}
+  .route .rname .chev{color:var(--muted);font-weight:400;font-size:11px;float:right}
+  .route .rtag{color:var(--txt);font-size:12px}
+  .route .rbest{color:var(--muted);font-size:11px;font-style:italic}
+  .steps{padding:6px 12px 12px}
+  .step{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:8px 0;border-top:1px dashed #2a2016}
+  .step .num{width:22px;height:22px;border-radius:50%;background:var(--panel2);border:1px solid var(--edge);
+    color:var(--gold);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step .act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .step .actname{color:var(--gold2);font-weight:600;font-size:13px}
+  .det{font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:1px 6px;border-radius:10px;border:1px solid;white-space:nowrap}
+  .det.deterministic{background:#15241a;border-color:#2c4a35;color:var(--good)}
+  .det.likely{background:#23260f;border-color:#46491f;color:#cfd07a}
+  .det.gamble{background:#2a1512;border-color:#4a2b25;color:var(--bad)}
+  .step .variants{font-size:10px;color:var(--muted)}
+  .step .variants b{color:var(--blue);font-weight:500}
+  .step .detail{font-size:12px;color:var(--txt);margin-top:3px}
+  .ministate{margin-top:5px;font-size:11px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+  .ministate .ms-rar{color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-size:9px;margin-right:2px}
+  .ms-mod{padding:1px 6px;border-radius:3px;border:1px solid var(--edge);background:var(--panel2)}
+  .ms-mod.anchor{border-color:#2c4a35;color:var(--good)}
+  .ms-mod.target{border-color:#4a3d20;color:var(--suffix)}
+  .ms-mod.fixed{border-color:#2c4a35;color:var(--good)}
+  .ms-mod.incidental{border-color:#4a2b25;color:var(--muted);font-style:italic}
+  .ms-arrow{color:var(--muted)}
+  .notes{margin-top:14px;border-top:1px solid var(--edge);padding-top:10px}
+  .notes h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin:0 0 6px}
+  .notes li{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.4}
 </style>
 </head>
 <body>
@@ -143,13 +177,13 @@
       <div class="legal" id="legal"></div>
 
       <h2 style="margin-top:16px;border-top:1px solid var(--edge)">Crafting path</h2>
-      <div class="plan-empty">The path planner plugs in here next. For now this panel
-        validates that your goal is actually craftable.</div>
+      <div id="planOut"></div>
     </div>
   </div>
 </div>
 
 <script src="poe2_data.js"></script>
+<script src="planner.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

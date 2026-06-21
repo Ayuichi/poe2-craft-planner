@@ -19,7 +19,7 @@ scope (a few crafts are fully deterministic; the tool is honest about which step
 |---|---|---|
 | 1 | Data pipeline (RePoE2 → normalized mod/base dataset) | ✅ done |
 | 2 | Target builder + legality checker + item paste parser | ✅ done |
-| 3 | Hybrid path planner (strategy templates + state-model validation) | ⏳ next |
+| 3 | Hybrid path planner (strategy templates + state-model validation) | ✅ done |
 
 ## Layout
 
@@ -27,9 +27,11 @@ scope (a few crafts are fully deterministic; the tool is honest about which step
 app/        Self-contained web app (open app/index.html in a browser, runs offline)
   index.html
   app.js          target builder, legality engine, paste parser
+  planner.js      Stage 3: state-transition model + strategy templates → crafting routes
   poe2_data.js    generated, slim dataset baked in for double-click use
 data/       Normalized dataset (poe2_mods_by_class.json, poe2_bases.json, meta) + schema README
-pipeline/   build_dataset.py (RePoE2 -> normalized) and build_app_data.py (-> app module)
+pipeline/   build_dataset.py (RePoE2 -> normalized), build_app_data.py (-> app module),
+            test_planner.js (node smoke test: `node pipeline/test_planner.js`)
 crafting-knowledge-base.md   0.5 crafting systems reference
 ```
 
