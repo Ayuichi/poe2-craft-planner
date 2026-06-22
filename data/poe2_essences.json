@@ -1,8 +1,8 @@
 {
  "_meta": {
   "source": "https://poe2db.tw/us/Essence (cached markdown render)",
-  "built": "2026-06-21T10:30:13.673694Z",
-  "count": 81,
+  "built": "2026-06-21T19:01:49.783175Z",
+  "count": 82,
   "note": "Real per-item-class guaranteed-mod table. tier=Lesser|Normal|Greater|Perfect; mode=magic_to_rare (add) | remove_add (Perfect)."
  },
  "essences": [
@@ -2166,6 +2166,24 @@
       "Sceptre"
      ],
      "mod": "Aura Skills have (15—20)% increased Magnitudes"
+    }
+   ]
+  },
+  {
+   "name": "Essence of the Breach",
+   "family": "Breach",
+   "tier": "Normal",
+   "mode": "remove_add",
+   "grants": [
+    {
+     "classes_raw": "Jewellery",
+     "classes": [
+      "Amulet",
+      "Talisman",
+      "Ring",
+      "Belt"
+     ],
+     "mod": "+20% to Maximum Quality"
     }
    ]
   }

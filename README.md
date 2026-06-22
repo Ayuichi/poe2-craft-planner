@@ -17,9 +17,12 @@ scope (a few crafts are fully deterministic; the tool is honest about which step
 
 | Stage | What | State |
 |---|---|---|
-| 1 | Data pipeline (RePoE2 → normalized mod/base dataset) | ✅ done |
+| 1 | Data pipeline (**Craft of Exile** → normalized mod/base dataset with real weights) | ✅ done |
 | 2 | Target builder + legality checker + item paste parser | ✅ done |
 | 3 | Hybrid path planner (strategy templates + state-model validation) | ✅ done |
+| 3.5–3.10 | Real essences, real weights/odds, best-path ranking, desecration + fracture tactics, **acquire-carry-base** philosophy | ✅ done |
+
+See `HANDOFF.md` for the detailed living state and `CHANGELOG.md` for the history.
 
 ## Layout
 
@@ -29,10 +32,12 @@ app/        Self-contained web app (open app/index.html in a browser, runs offli
   app.js          target builder, legality engine, paste parser
   planner.js      Stage 3: state-transition model + strategy templates → crafting routes
   poe2_data.js    generated, slim dataset baked in for double-click use
-data/       Normalized dataset (poe2_mods_by_class.json, poe2_bases.json, meta) + schema README
-pipeline/   build_dataset.py (RePoE2 -> normalized), build_app_data.py (-> app module),
-            test_planner.js (node smoke test: `node pipeline/test_planner.js`)
+data/       Normalized dataset (poe2_mods_by_class.json w/ weights, poe2_bases.json, poe2_essences.json, meta) + schema README
+pipeline/   build_dataset.py (Craft of Exile -> normalized, with weights), build_essences.py,
+            build_app_data.py (-> app module), test_planner.js (node smoke test)
 crafting-knowledge-base.md   0.5 crafting systems reference
+poe2-crafting-reference.md   mechanics reference distilled from a community crafting guide
+planner-design-spec.md       target model for the next engine: the real endgame craft method
 ```
 
 ## Run it
@@ -44,19 +49,24 @@ so `file://` works). Pick a base, add mods, watch the legality panel; or paste a
 
 ```bash
 cd pipeline
-python build_dataset.py     # downloads RePoE2, writes ../data/*.json
-python build_app_data.py    # writes ../app/poe2_data.js
+python build_dataset.py     # Craft of Exile cache → ../data/*.json (with weights)
+python build_essences.py    # poe2db essence cache → ../data/poe2_essences.json
+python build_app_data.py    # → ../app/poe2_data.js
 ```
 
 ## Data sources
 
-- **[RePoE2](https://repoe-fork.github.io/poe2/)** — JSON exported from the game files (bases, mods, tags). Primary backbone.
-- **[poe2db.tw](https://poe2db.tw/us/)** — human-readable cross-check; essence/alloy guaranteed-mod data.
+- **[Craft of Exile](https://www.craftofexile.com/)** (`poec_data.json`) — PRIMARY backbone: item
+  classes, bases, mods, mod-groups, and per-tier ilvl + **weighting** + value ranges. Weights are
+  CoE's community-EXTRAPOLATED estimates (no official 0.5 weights exist) — good for relative odds.
+- **[poe2db.tw](https://poe2db.tw/us/)** — essence guaranteed-mod data (item-class-aware).
+- **[RePoE2](https://repoe-fork.github.io/poe2/)** — RETIRED as backbone (its 0.5 export flattens
+  spawn weights to 0/1, so it can't give odds). Kept only as a cross-check.
 
-> Note: 0.5 game files ship spawn weights flattened to `1`, so true roll probabilities aren't
-> available. The planner reasons about *what is possible*, not precise odds.
+> Odds shown as "~X% per slam" come from CoE's extrapolated weights (community estimates, not
+> official GGG data). Treat them as solid relative effort, not exact probability.
 
 ## License / data
 
-Game data © Grinding Gear Games, surfaced via RePoE2 (CC BY-NC-SA where noted). This tool is a
-fan-made utility, not affiliated with GGG.
+Game data © Grinding Gear Games, surfaced via Craft of Exile / poe2db. This tool is a fan-made
+utility, not affiliated with GGG.

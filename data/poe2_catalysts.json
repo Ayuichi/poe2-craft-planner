@@ -1,0 +1,115 @@
+{
+ "_meta": {
+  "source": "craftofexile.com poec_data.json",
+  "built": "2026-06-21T15:21:50.896745Z",
+  "count": 13
+ },
+ "catalysts": [
+  {
+   "id": "1",
+   "name": "Adaptive",
+   "tags": [
+    "Attribute"
+   ],
+   "raw": "|attribute|jewellery_attribute|"
+  },
+  {
+   "id": "6",
+   "name": "Carapace",
+   "tags": [
+    "Defences"
+   ],
+   "raw": "|defences|jewellery_defense|"
+  },
+  {
+   "id": "10",
+   "name": "Chayula's",
+   "tags": [
+    "Chaos",
+    "Chaos Damage"
+   ],
+   "raw": "|chaos|chaos_damage|"
+  },
+  {
+   "id": "3",
+   "name": "Esh's",
+   "tags": [
+    "Lightning"
+   ],
+   "raw": "|lightning|"
+  },
+  {
+   "id": "4",
+   "name": "Flesh",
+   "tags": [
+    "Life"
+   ],
+   "raw": "|life|"
+  },
+  {
+   "id": "13",
+   "name": "Necrotic",
+   "tags": [
+    "Minion"
+   ],
+   "raw": "|minion|"
+  },
+  {
+   "id": "9",
+   "name": "Neural",
+   "tags": [
+    "Mana"
+   ],
+   "raw": "|mana|"
+  },
+  {
+   "id": "2",
+   "name": "Reaver",
+   "tags": [
+    "Attack"
+   ],
+   "raw": "|attack|jewellery_attack|"
+  },
+  {
+   "id": "5",
+   "name": "Sibilant",
+   "tags": [
+    "Caster"
+   ],
+   "raw": "|caster|jewellery_caster|"
+  },
+  {
+   "id": "8",
+   "name": "Skittering",
+   "tags": [
+    "Speed"
+   ],
+   "raw": "|speed|"
+  },
+  {
+   "id": "11",
+   "name": "Tul's",
+   "tags": [
+    "Cold"
+   ],
+   "raw": "|cold|"
+  },
+  {
+   "id": "12",
+   "name": "Uul-Netol's",
+   "tags": [
+    "Physical",
+    "Physical Damage"
+   ],
+   "raw": "|physical|physical_damage|"
+  },
+  {
+   "id": "7",
+   "name": "Xoph's",
+   "tags": [
+    "Fire"
+   ],
+   "raw": "|fire|"
+  }
+ ]
+}

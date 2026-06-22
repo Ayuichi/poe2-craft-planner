@@ -211,8 +211,13 @@
       left.append(el("span", "t", " " + m.text));
       if (m.essence_only) left.append(el("span", "tag ess", " essence-only"));
       if (m.src === "desecrated") left.append(el("span", "tag ess", " desecrate-only"));
+      const star = el("span", "must" + (m.mustHave ? " on" : ""), m.mustHave ? "★ must" : "☆ wish");
+      star.title = "Toggle must-have. ★ = the planner guarantees it with premium tools; ☆ = best-effort fill.";
+      star.style.cursor = "pointer"; star.style.marginRight = "8px"; star.style.fontSize = "11px";
+      star.style.color = m.mustHave ? "#e8b84b" : "#7a8a99";
+      star.onclick = () => { m.mustHave = !m.mustHave; render(); };
       const x = el("span", "x", "✕"); x.title = "remove"; x.onclick = () => removeMod(m.id);
-      row.append(left); row.append(x); mc.append(row);
+      row.append(left); row.append(star); row.append(x); mc.append(row);
     });
 
     // legality

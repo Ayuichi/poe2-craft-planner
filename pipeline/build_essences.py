@@ -79,6 +79,16 @@ def parse(text):
             cur["grants"].append({"classes_raw": spec.strip(), "classes": parse_classes(spec), "mod": mod.strip()})
     return [e for e in essences if e["grants"]]
 
+
+# Essences VERIFIED in-game but absent from the cached poe2db scrape (added after the cache, or
+# missed by the parser). Source: in-game screenshot. Keep minimal + cite. Merged in main().
+SUPPLEMENT = [
+    {"name": "Essence of the Breach", "family": "Breach", "tier": "Normal", "mode": "remove_add",
+     "grants": [{"classes_raw": "Jewellery", "classes": ["Amulet", "Talisman", "Ring", "Belt"],
+                 "mod": "+20% to Maximum Quality"}]},
+]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache", default=os.path.join(HERE, "cache", "poe2db_essence.md"))
@@ -86,6 +96,10 @@ def main():
     a = ap.parse_args()
     with open(a.cache, encoding="utf-8") as f:
         essences = parse(f.read())
+    have = {e["name"] for e in essences}
+    for sup in SUPPLEMENT:
+        if sup["name"] not in have:
+            essences.append(sup)
     payload = {"_meta": {"source": "https://poe2db.tw/us/Essence (cached markdown render)",
         "built": datetime.datetime.utcnow().isoformat() + "Z", "count": len(essences),
         "note": "Real per-item-class guaranteed-mod table. tier=Lesser|Normal|Greater|Perfect; mode=magic_to_rare (add) | remove_add (Perfect)."},
