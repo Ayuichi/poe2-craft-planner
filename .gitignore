@@ -20,3 +20,6 @@ Thumbs.db
 
 # Local Claude / preview config (machine-specific)
 .claude/
+
+# Internal-only working notes (not for the public repo)
+high-end-crafting-principles.md
