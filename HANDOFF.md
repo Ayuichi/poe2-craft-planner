@@ -2,12 +2,11 @@
 
 > Living state doc for anyone (incl. other Claude instances) picking up this project.
 > Last updated: 2026-06-22 — after the CoE data migration (real weights), best-path ranking,
-> the desecration + fracture tactics, the **acquire-carry-base** philosophy fix, and the full
-> **Stage 4b** pass: catalyst/implicit data + wiring, must-have/wish flags, whittling +
-> desecrate-loop, and a ground-up **fracture-anchor → chaos-target** rebuild verified against a
-> real Warstaff craft (Abyss-mark setup, sacrificial veiled blocker, chaos-the-SET, desecrate-LAST,
-> honest grind-loop fills).
-> Working tree has uncommitted work on top of the `Stage 3` commit; see CHANGELOG.md for the push.
+> the desecration + fracture tactics, the **acquire-carry-base** philosophy fix, the full
+> **Stage 4b** pass (catalyst/implicit data + wiring, must-have/wish flags, whittling +
+> desecrate-loop, fracture-anchor → chaos-target rebuild), and a **10-run Q&A audit** that produced
+> the **safety-model** refinement: the acquire route now reserves desecration ONLY when the hard
+> target collides with a same-side keeper (lone-on-side mods exalt-fill cleanly instead).
 >
 > ⚠ **READ FIRST: `planner-design-spec.md`** — the agreed endgame craft model (fracture-anchor →
 > chaos-targeting → quality/catalysts → desecrate-loop). Stage 4b has now BUILT most of it
@@ -39,7 +38,7 @@ crafting routes on the right with honest per-slam odds. What's live:
   white — it's reserved for a later hard mod, after essences/exalts can't cleanly target it.
 - **Stage 4 wiring live**: jewellery exalt steps name the right catalyst + Omen of Catalysing
   Exaltation with biased odds; base-implicit shortcuts surfaced; per-mod ★/☆ must-have toggle.
-- 154 node assertions pass across two suites (`test_planner.js` 138 + `test_data.js` 16).
+- 157 node assertions pass across two suites (`test_planner.js` 141 + `test_data.js` 16).
 Next up (not built): the 34% quality → +4 breakpoints (only piece not in CoE), runic alloys,
 tier-aware paste parsing.
 
@@ -85,11 +84,14 @@ pipeline/
   build_app_data.py   ../data/*.json → ../app/poe2_data.js  (bundles mods+essences+catalysts+implicits)
   cache/coe_poec_data.json  cached Craft of Exile data dump (mods/bases/tiers/weights/catalysts/bitems)
   cache/poe2db_essence.md   cached poe2db /us/Essence render
-  test_planner.js     node smoke test for the planner (incl. gold-amulet regression)
+  test_planner.js     node smoke test for the planner (incl. gold-amulet + same-side-keeper regressions)
   test_data.js        node sanity test for Stage 4 data (catalysts + implicits)
+  qa_runs.js          Q&A harness: builds 10 realistic wish-items, dumps recommended route + effort + notes
 crafting-knowledge-base.md   0.5 crafting systems reference (essences, omens, desecration, alloys)
 poe2-crafting-reference.md   distilled crafting guide (the video walkthrough → clean reference)
+high-end-crafting-principles.md  named, pointable endgame techniques (P1–P15) we've verified
 planner-design-spec.md       the endgame craft model the Stage 4b engine targets (READ FIRST)
+planner-qa-findings.md       10-run Q&A audit + the safety model (what makes a Chaos/Annul safe)
 HANDOFF.md, CHANGELOG.md, README.md, .gitignore
 ```
 
@@ -226,6 +228,21 @@ HANDOFF.md, CHANGELOG.md, README.md, .gitignore
 7. **Apply desecrate-LAST to `routeAcquireAnchor`** — the principle established in the fracture
    rebuild (a desecrated mod isn't strip-safe) likely applies to the acquire route too, where the
    desecrate currently sits mid-sequence. Low-risk cleanup, flagged but not yet done.
+8. ~~**Same-side-keeper desecrate gate**~~ **DONE (2026-06-22, Q&A audit).** `routeAcquireAnchor`
+   now reserves desecration only when the hard target shares its side with another wanted mod
+   (so the Exalt-retry can't be side-isolated and Omen of Light is the cheapest SAFE placement);
+   a target alone on its side falls through to exalt-fill. See `planner-qa-findings.md` HIGH-1 +
+   the safety model. Regression added to `test_planner.js` (opposite-side → no desecrate, same-side
+   → desecrate). Fixed the wasted-bone cases in Q&A runs 5/7/8.
+9. **HIGH-2 (open): crafted slot for a wish.** When the must-have isn't essence-able (e.g. 35% MS
+   shortfall), `routeAcquireAnchor` does a bare Regal and GAMBLES a guaranteeable wish (Life) while
+   the one crafted-mod slot sits idle. Fix: after must-haves fail to claim the essence slot, fall
+   through to guarantee the hardest essence-able WISH instead of leaving the slot empty. See
+   `planner-qa-findings.md` HIGH-2 (Run 4).
+10. **Verify crafted-mod annul behaviour (0.5)** — the same-side safety model assumes a teal
+    essence/crafted mod CAN be hit by a plain Annul (planner already assumes this). If 0.5 makes
+    crafted mods annul-immune like PoE1, even same-side collisions are safe and the desecrate gate
+    could relax further. Confirm on poe2db before tightening.
 
 ## How to run / test / rebuild
 ```bash
@@ -235,6 +252,7 @@ HANDOFF.md, CHANGELOG.md, README.md, .gitignore
 # Test:
 node pipeline/test_planner.js          # planner smoke test, asserts every step is legal
 node pipeline/test_data.js             # Stage 4 data sanity (catalysts + implicits)
+node pipeline/qa_runs.js [n]           # Q&A audit: 10 wish-items (or just run n) → routes + notes
 
 # Rebuild data after a patch:
 cd pipeline

@@ -3,6 +3,48 @@
 All notable changes to the PoE2 Craft Planner. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/). Dates are YYYY-MM-DD.
 
+## [Unreleased] — 2026-06-22
+
+Q&A audit pass: ran 10 realistic wish-items through the planner, checked every recommended route
+against `poe2-crafting-reference.md`, and landed a **safety-model** correctness fix.
+
+### Added
+- **`pipeline/qa_runs.js`** — Q&A harness that builds 10 representative wish-items from the real
+  dataset (ring/amulet/boots/sceptre/body armour/belt/gloves/quiver + a flagged-must-have case + a
+  desecrate-exclusive case) and dumps each recommended route (full steps), every route's effort,
+  and the advisory notes. Run `node pipeline/qa_runs.js [n]` for all or a single run.
+- **`planner-qa-findings.md`** — the audit write-up: a per-run table, what the planner gets right,
+  graded findings, and **the safety model** — the unifying rule behind premium-tool decisions:
+  a Chaos/Annul is safe only toward mods it can't hit, and the two ways to get there are FRACTURE
+  (true immunity — ignore it) and DESECRATE + Omen of Light (targetable, not immune). Side omens
+  only resolve cross-side safety; nothing isolates two mods on the SAME side.
+
+### Fixed
+- **Same-side-keeper desecrate gate (HIGH-1).** `routeAcquireAnchor` used to reserve its one
+  desecration slot for any remaining must-have with `expectedSlams ≥ 4`. But an Exalt only ADDS
+  (zero risk) — the risk is the RETRY removal, and a side-targeted Annul cleanly removes the failed
+  junk *when the target is the lone wanted mod on its side*. So desecration was being wasted on
+  lone-on-side mods (Q&A runs 5/7/8: Spirit, Life, Life — all the only wanted mod on the prefix
+  side). The gate now also requires a **same-side keeper** (`target.mods.some(k => k !== m &&
+  k.side === m.side)`); a lone-on-side target falls through to exalt-fill. Verified: runs 5/7/8 now
+  exalt cleanly, run 1 still correctly desecrates (Mana shares the prefix side with the Life keeper),
+  run 10's desecrate-exclusive route is unchanged. NOTE: the effort metric actually scored the old
+  desecrate path *cheaper* (it prices Well reveals as near-free and ignores bone/omen cost), so the
+  fix routes on **safety**, not the effort number — see `planner-qa-findings.md` LOW-8.
+
+### Tests
+- `test_planner.js` extended: an opposite-side 2-mod goal must NOT desecrate (lone-on-side mods
+  exalt cleanly), and a same-side 2-hard-prefix goal MUST reserve the desecrate step. 157 assertions
+  total (planner 141 + data 16), all passing.
+
+### Known-open (next up)
+- **HIGH-2:** when the must-have isn't essence-able, the acquire route does a bare Regal and gambles
+  a guaranteeable WISH (e.g. Life) while the crafted slot sits idle — should fall through to essence
+  the hardest wish. **Verify:** whether 0.5 teal/crafted mods are annul-immune (the safety model
+  assumes they're annullable, as the planner already does).
+
+---
+
 ## [Unreleased] — 2026-06-21
 
 Big one: migrated the data backbone to get **real mod weights/odds**, then built the

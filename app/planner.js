@@ -823,12 +823,22 @@
       const sh = modShare(m, target, db, reqIlvl); const s = (sh == null) ? 0.5 : sh;
       if (s < essShare) { essShare = s; essTarget = m; ess = e; }
     }
-    // 2) DESECRATE the hardest remaining MUST-HAVE essence can't get (grindy + desecrate-able).
+    // 2) DESECRATE the hardest remaining MUST-HAVE essence can't get — but ONLY when it COLLIDES
+    //    with a same-side keeper. Safety model: an Exalt only ADDS (zero risk); the risk is the
+    //    RETRY removal. If the target is the LONE wanted mod on its side, a side-targeted Annul
+    //    removes just the failed junk (clean), so exalt-fill is cheaper and desecration would be
+    //    wasted. Desecration earns its one slot only when another wanted mod shares the target's
+    //    side — then no side omen can isolate the retry, and Omen of Light's precise removal (or
+    //    the no-removal Abyssal Echoes reroll) is the cheapest SAFE placement. (Nothing is fractured
+    //    in this route, and the essence/teal mod is treated as annullable, so every other goal mod
+    //    on the same side counts as an at-risk keeper.)
     let hardRem = null, di = null;
     for (let i = mustRem.length - 1; i >= 0; i--) {
       const m = mustRem[i];
       if (m === essTarget) continue;
       if (expectedSlams(m, target, db, reqIlvl) < 4) continue;
+      const sameSideKeeper = target.mods.some(k => k !== m && k.side === m.side);
+      if (!sameSideKeeper) continue; // lone on its side -> exalt + side-Annul is clean & cheaper
       const info = desecrateInfo(m, target.itemClass, target.baseName, db);
       if (info) { hardRem = m; di = info; break; }
     }

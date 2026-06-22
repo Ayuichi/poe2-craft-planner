@@ -186,10 +186,24 @@ ok(acq && ladderN && acq.effort < ladderN.effort,
 ok(!nPlan.routes.some(r => /^Desecration anchor/.test(r.name)),
    "no standalone desecration route for a normal goal (desecration not spent on the carry)");
 ok(nPlan.routes.some(r => !/Acquire/.test(r.name)), "from-white fallback routes still present");
-// With two hard mods, the acquire route reserves a LATE desecration step for the second one.
-const desStep = acq && acq.steps.find(s => /Desecrate the last hard mod/.test(s.action));
+// Safety model: rareP + rareS are on OPPOSITE sides, so each is the lone wanted mod on its side —
+// a side-targeted Exalt + same-side Annul retry is clean (no keeper at risk). Desecration would be
+// wasted here, so the acquire route must NOT reserve a desecration step for an opposite-side goal.
+ok(rareP.side !== rareS.side, "regression goal has its two hard mods on opposite sides");
+ok(acq && !acq.steps.some(s => /Desecrate the last hard mod/.test(s.action)),
+   "opposite-side goal: NO desecration step (lone-on-side mods exalt cleanly via side-targeted Annul)");
+
+// But when two hard mods COLLIDE on the same side, the retry can't be side-isolated, so the acquire
+// route DOES reserve its one desecration slot for the second one (placed LAST, after the carry).
+const rarePs = sortedByW.filter(m => m.side === "prefix").slice(0, 2);
+const ssGoal = { itemClass: "Amulet", baseName: ab2.name, baseTags: ab2.tags, itemLevel: 82, rarity: "Rare", mods: rarePs };
+const ssPlan = planner.planRoutes(ssGoal, DB);
+const ssAcq = ssPlan.routes.find(r => /Acquire the carry base/.test(r.name));
+ok(rarePs.length === 2 && rarePs[0].side === "prefix" && rarePs[1].side === "prefix",
+   "same-side goal: two hard PREFIXES selected");
+const desStep = ssAcq && ssAcq.steps.find(s => /Desecrate the last hard mod/.test(s.action));
 ok(!!desStep && desStep.determinism === "deterministic",
-   "acquire route reserves a deterministic desecration STEP for the second hard mod (late, not on the carry)");
+   "same-side goal: acquire route reserves a deterministic desecration STEP (collision -> safe placement)");
 
 // Fracture-anchor + chaos-target (Stage 4b): fires only when a side has 2+ hard, non-essence mods.
 const fr_c = DB.classes["Amulet"]; const fr_b = fr_c.bases[0];
