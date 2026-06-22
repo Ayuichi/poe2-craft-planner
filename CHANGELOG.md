@@ -10,10 +10,36 @@ in the app are derived from Craft of Exile's community-extrapolated weights (no 
 
 ## [Unreleased]
 
+## 2026-06-23
+
+The socketable arc: equip the runes, soul cores, and idols on your item and the planner
+plans around the bigger budget they unlock — plus a determinism pass that fills more of
+your slots deterministically instead of gambling them.
+
 ### Added
 - **Socketable reference data** — runes, soul cores, and idols (including lich Gazes) are
   now in the dataset, tagged by what they do: extra crafted/suffix slots, off-pool
   unlocks, and granted mods. Groundwork for routes that plan around them.
+- **Equip socketables in the builder.** A new picker lets you toggle the runes that apply to
+  your item (e.g. Serle's Triumph for a 7th modifier, Astrid's Creativity for a second crafted
+  mod), and the legality check updates live — so a 4-suffix item reads as legal once Serle's
+  Triumph is equipped.
+- **Rune-unlocked modifiers.** Equipping a "Can roll X" rune (Kolr's Hunt for Marksman/projectile
+  mods on gloves, Katla's Gloom, Medved's Tending, Thrud's Might, Uhtred's Sidereus, Vorana's
+  Carnage) now adds that rune's mod pool to the builder, so those off-pool mods become selectable
+  goal stats on the item types that can use them.
+
+### Changed
+- **Smarter use of your one guaranteed-mod slot.** When none of your must-have stats can be
+  guaranteed by an essence (essences cap below the top tier), the planner now spends that crafted
+  slot to lock in a *wish* stat at a guaranteed lower tier, instead of leaving it empty and
+  gambling. Across the test goals, wishes secured without gambling went from 0% to about 48%.
+- **More of your must-haves locked in.** A hard must-have sitting alone on its affix side now
+  claims the desecration slot to place it deterministically, rather than being left to a slam.
+  Must-haves secured without gambling rose to about 95% of the test goals.
+- **The planner now plans around your equipped socketables.** With Astrid's Creativity it will
+  guarantee a *second* mod using a Perfect essence, and with Serle's Triumph it builds toward a
+  7th modifier (a 4-suffix item). Desecration steps also point you to the right lich omen.
 
 ## 2026-06-22
 

@@ -1,24 +1,35 @@
 # PoE2 Craft Planner — Handoff / Project State
 
 > Living state doc for anyone (incl. other Claude instances) picking up this project.
-> Last updated: 2026-06-22 — after the CoE data migration (real weights), best-path ranking,
-> the desecration + fracture tactics, the **acquire-carry-base** philosophy fix, the full
-> **Stage 4b** pass (catalyst/implicit data + wiring, must-have/wish flags, whittling +
-> desecrate-loop, fracture-anchor → chaos-target rebuild), and a **10-run Q&A audit** that produced
-> the **safety-model** refinement: the acquire route now reserves desecration ONLY when the hard
-> target collides with a same-side keeper (lone-on-side mods exalt-fill cleanly instead).
+> Last updated: 2026-06-23 — after the full **socketable arc** (Phases A/C/D) plus the **T1**
+> determinism fix. Prior work (2026-06-22 and before): CoE data migration (real weights), best-path
+> ranking, desecration + fracture tactics, the **acquire-carry-base** philosophy, the full Stage 4b
+> pass, and the 10-run Q&A audit + safety-model refinement.
+> Newest (2026-06-23): **T1** = the acquire route now fills its otherwise-idle crafted slot by
+> essencing a WISH at a lower tier; **D1/D2 design calls** = lone-on-side hard must-haves take the
+> desecrate slot (determinism over currency) + the desecrate effort metric is capped; **Phase A** =
+> socketables extracted from CoE; **Phase C** = legality + builder read an equipped-socketable loadout
+> AND pool-unlock runes add their poe2db-sourced mod pools; **Phase D** = the planner spends the budget
+> (Astrid's 2nd crafted slot via a Perfect essence, Serle's 7th suffix). Determinism QA (`qa20.js`):
+> must-haves **36/38 (95%)**, wishes **13/27 (48%)** — up from 32/38 and 0/27.
 >
 > ⚠ **READ FIRST: `planner-design-spec.md`** — the agreed endgame craft model (fracture-anchor →
 > chaos-targeting → quality/catalysts → desecrate-loop). Stage 4b has now BUILT most of it
 > (catalysts, implicits, must-have flag, fracture route, whittling/desecrate-loop). Still open:
 > the +3→+4 @ 34% **quality breakpoints** (not in CoE) and a few later items — see Status + Suggested next tasks.
 >
-> ⚠ **ALSO READ: `TODO.md`** — the live backlog (supersedes "Suggested next tasks" below for
-> prioritization). T1 = the idle-crafted-slot fix: a determinism QA (`qa20.js`, 20 goals) found
-> must-haves are 84% deterministic but **wishes are 0/27** because the crafted slot is only offered to
-> must-haves and sits idle. T2 + the Phase A–F plan = new tools pulled from 4 crafting-video
-> transcripts (`transcript-gap-analysis.md`); **Phase A is DONE** (socketables extracted: Astrid's
-> Creativity = +1 crafted slot, Serle's Triumph = +1 suffix, Kolr's Hunt = off-pool unlock).
+> ⚠ **ALSO READ: `TODO.md`** — the live backlog (supersedes "Suggested next tasks" below). T1 +
+> Phases A/C/D are DONE; what's left is **Phase E** (Magic-rarity final goals), **Phase F** (corruption
+> / quality-breakpoint layer, incl. the +3→+4 @ 34% quality piece + Vaal Blacksmith's Infuser), and two
+> small Phase-D follow-ups (count rune mods in the odds denominator; a mod→lich desecration map).
+> The socketables: **Astrid's Creativity** = +1 crafted slot, **Serle's Triumph** = +1 suffix (7th mod),
+> the **"Can roll X" runes** (Kolr's Hunt → Marksman on gloves, etc.) = off-pool unlocks whose mod
+> pools were pulled from **poe2db** into `data/poe2_rune_pools.json`.
+>
+> ⚠ **GOTCHA (don't relitigate):** the lich **Gazes** (Kurgal's/Amanamu's/Ulaman's/Tecrod's Gaze) are
+> equip-stat SOUL CORES ("Abyssal Eye" augments), NOT a crafting/desecration tool. An earlier draft
+> wrongly tied them to the lich desecration pools; that was removed. The real lich crafting tools are
+> the desecration OMENS (Blackblooded→Kurgal, Liege→Amanamu, Sovereign→Ulaman).
 
 ## What this is
 A **goal → path** crafting planner for Path of Exile 2 (patch 0.5, *Return of the Ancients*).
@@ -45,9 +56,15 @@ crafting routes on the right with honest per-slam odds. What's live:
   white — it's reserved for a later hard mod, after essences/exalts can't cleanly target it.
 - **Stage 4 wiring live**: jewellery exalt steps name the right catalyst + Omen of Catalysing
   Exaltation with biased odds; base-implicit shortcuts surfaced; per-mod ★/☆ must-have toggle.
-- 157 node assertions pass across two suites (`test_planner.js` 141 + `test_data.js` 16).
-Next up (not built): the 34% quality → +4 breakpoints (only piece not in CoE), runic alloys,
-tier-aware paste parsing.
+- **Socketable layer (NEW 2026-06-23):** the builder reads an equipped-socketable loadout — Astrid's
+  Creativity (+1 crafted slot), Serle's Triumph (+1 suffix / 7th mod), and the "Can roll X" runes
+  (off-pool mod pools pulled from poe2db into `poe2_rune_pools.json`). Legality + the planner spend the
+  bigger budget: Astrid's 2nd crafted mod via a Perfect essence, Serle's 7th suffix.
+- **Determinism (NEW):** T1 (wish-essence fallthrough) + the D1/D2 fixes took the qa20 scorecard to
+  must-haves **36/38 (95%)**, wishes **13/27 (48%)** (from 32/38, 0/27).
+- 161 `test_planner.js` assertions + the `test_data.js` catalyst/implicit/socketable checks pass.
+Next up (not built): Magic-rarity goals (Phase E), the corruption/quality-breakpoint layer (Phase F,
+incl. +3→+4 @ 34% + Vaal Blacksmith's Infuser), runic alloys, tier-aware paste parsing.
 
 ## Where it lives
 - Folder: `G:\Sage-Cowork\Projects\PoE2 Tools`
@@ -72,7 +89,14 @@ tier-aware paste parsing.
 | 4b-ii | **Catalyst + implicit wiring** — jewelry exalt steps now show the right catalyst + Omen of Catalysing Exaltation with BIASED odds (~2–3× / 40%≈3×); notes surface catalyst guidance + base-implicit shortcuts (Gold Amulet→Rarity etc.). Helpers: `catalystFor`, `oddsForBiased`, `catBiasClause`, `implicitBaseFor` | ✅ done |
 | 4b-iii | **Must-have / nice-to-have flag** — `mustHaveSet(target)` (flagged mods drive carry/essence/desecrate/fracture + §3.5 gating; none flagged ⇒ all must-have); builder shows a ★/☆ toggle per mod. Flagging the criticals stops over-specified wishlists from inflating the tier. | ✅ done |
 | 4b-iv | **Whittling-by-ilvl + desecrate reveal-loop** — desecrate steps now spell out the full loop (bone + Necromancy → reveal 1-of-3 → Omen of Abyssal Echoes free reroll → Omen of Light + Annul strip & retry); a whittling note explains ilvl-targeting + names the goal's lowest wanted mod (the safety floor) | ✅ done |
-| 4b-v | **Quality breakpoints** (+3→+4 @ 34% etc.) — the one piece NOT in CoE; needs poe2db quality-scaling data (client-rendered → Chrome-tools fetch) | ⏳ next/gated |
+| 4b-v | **Quality breakpoints** (+3→+4 @ 34% etc.) — the one piece NOT in CoE; lever confirmed = Vaal Blacksmith's Infuser (weapon/armour quality 20→30%) + Essence of the Breach (jewellery). Folded into Phase F. | ⏳ gated |
+| T1 | **Wish-essence fallthrough** — when no must-have can claim the crafted slot, `routeAcquireAnchor` essences the hardest essence-able WISH at a lower tier (honestly labelled). Wishes 0/27 → 13/27. | ✅ done |
+| D1/D2 | **Determinism design calls** — lone-on-side hard must-haves take the desecrate slot (determinism > currency); `desecrateReveals` capped (effort-metric fix). Must-haves 32→36/38. | ✅ done |
+| A | **Socketables data** — `build_socketables.py` extracts 287 runes/soul-cores/idols from CoE → `poe2_socketables.json` → `window.POE2.socketables` (cap_crafted / cap_suffix / pool_unlock / grant_mod) | ✅ done |
+| C | **Legality + builder read the loadout** — `socketableLoadout` raises affix caps (Serle's) + surfaces crafted slots (Astrid's); a builder picker toggles socketables live; **pool-unlock runes** add their poe2db-sourced mod pools (`poe2_rune_pools.json`, `runePoolMods`) so off-pool mods become selectable | ✅ done |
+| D | **Planner spends the budget** — Astrid's 2nd crafted slot (Perfect essence + Crystallisation), Serle's 7th suffix (`affixCaps` + cap-aware pool-forcing), honest lich-omen guidance | ✅ done |
+| E | **Magic-rarity final goals** (1p/1s + rune extras, distinct route shape) | ⏳ next |
+| F | **Corruption / quality layer** — Vaal Blacksmith's Infuser + quality breakpoints, Architect's Orb notes | ⏳ later |
 | — | Real alloy guaranteed-mod data | ⏳ later |
 | — | Tauri wrap (small .exe) | ⏳ later |
 
@@ -83,7 +107,7 @@ app/                  Self-contained web app (open app/index.html, runs offline 
   app.js              target builder + legality engine + paste parser + plan rendering
   planner.js          Stage 3: state-transition model + strategy templates → routes
   poe2_data.js        generated slim dataset (window.POE2); loaded via <script src>
-data/                 poe2_mods_by_class.json (per class: bases, prefixes, suffixes [exalt-rollable, with `bw` weights], desecrated [exclusive pool]), poe2_bases.json, poe2_meta.json, poe2_essences.json, poe2_catalysts.json (Stage 4), poe2_implicits.json (Stage 4), poe2_socketables.json (Phase A: runes/soul cores/idols)
+data/                 poe2_mods_by_class.json (per class: bases, prefixes, suffixes [exalt-rollable, with `bw` weights], desecrated [exclusive pool]), poe2_bases.json, poe2_meta.json, poe2_essences.json, poe2_catalysts.json (Stage 4), poe2_implicits.json (Stage 4), poe2_socketables.json (Phase A: runes/soul cores/idols), poe2_rune_pools.json (Phase C: poe2db pool-unlock mods per rune)
 pipeline/
   build_dataset.py    Craft of Exile (cache/coe_poec_data.json) → ../data/*.json (with WEIGHTS)
   build_essences.py   cached poe2db essence page → ../data/poe2_essences.json
@@ -103,7 +127,9 @@ planner-design-spec.md       the endgame craft model the Stage 4b engine targets
 planner-qa-findings.md       10-run Q&A audit + the safety model (what makes a Chaos/Annul safe)
 TODO.md                      LIVE backlog: T1 wish-fallthrough, T2 new tools, Phase A–F implementation plan
 transcript-gap-analysis.md   4 crafting videos vs P1–P15 + planner (what's covered / what's missing)
-HANDOFF.md, CHANGELOG.md, README.md, .gitignore
+HANDOFF.md, README.md, .gitignore
+CHANGELOG.md                 PUBLIC, user-facing changelog (pushed to git)
+CHANGELOG-internal.md        INTERNAL maintainer log (detailed dev notes; gitignored, not pushed)
 ```
 
 ## Key design decisions (don't relitigate without reason)

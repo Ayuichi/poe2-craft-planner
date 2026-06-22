@@ -44,16 +44,75 @@
     return fams.sort((a, b) => a.label.localeCompare(b.label));
   }
 
+  // Effective caps + crafted slots + unlocked pools given the target's equipped socketables.
+  // target.socketables = array of socketable names or ids (resolved against window.POE2.socketables).
+  // A socketable applies only if its scope covers this item class (or "all"). Phase C of the T2 plan:
+  //   cap_crafted -> +crafted-mod slots (consumed by the PLANNER, no legality count exists here),
+  //   cap_suffix / cap_prefix -> raise the affix cap (Serle's Triumph: Rare 3 suffixes -> 4),
+  //   pool_unlock -> records the unlocked mod family (NOTE: the off-pool mods themselves are not in
+  //   our dataset yet, so this lists the family but does not add specific mods — a known data gap).
+  function socketableLoadout(target) {
+    const rc = RARITY_CAP[target.rarity] || RARITY_CAP.Rare;
+    const out = { prefixCap: rc.p, suffixCap: rc.s, craftedSlots: 1, unlocked: [] };
+    const list = (DB && DB.socketables) || [];
+    for (const ref of (target.socketables || [])) {
+      const sk = list.find(x => x.id === ref || x.name === ref);
+      if (!sk) continue;
+      const inScope = (sk.scope || []).includes("all") || (sk.scope || []).includes(target.itemClass);
+      if (!inScope) continue;
+      if (sk.effect === "cap_prefix") out.prefixCap += (sk.value || 1);
+      else if (sk.effect === "cap_suffix") out.suffixCap += (sk.value || 1);
+      else if (sk.effect === "cap_crafted") out.craftedSlots += (sk.value || 1);
+      else if (sk.effect === "pool_unlock" && sk.unlocks) out.unlocked.push(sk.unlocks);
+    }
+    return out;
+  }
+
+  // Mods unlocked by an equipped pool_unlock rune (Kolr's Hunt, etc.), shaped like normal mods so the
+  // builder + legality engine handle them uniformly. Only runes in target.socketables whose scope
+  // covers this item class contribute, and each mod is tagged to the CURRENT base so modEligible and
+  // the weight ladder work. Data: window.POE2.runePools (poe2db; weights approximate). Phase C.
+  function runePoolMods(target) {
+    const equipped = target.socketables || [];
+    if (!equipped.length) return [];
+    const pools = (DB && DB.runePools) || {};
+    const socks = (DB && DB.socketables) || [];
+    const base = target.baseName;
+    const out = [];
+    for (const name of equipped) {
+      const sk = socks.find(x => x.name === name);
+      if (!sk || sk.effect !== "pool_unlock") continue;
+      if (!((sk.scope || []).includes("all") || (sk.scope || []).includes(target.itemClass))) continue;
+      const p = pools[name]; if (!p) continue;
+      let i = 0;
+      for (const rm of (p.prefixes || []).concat(p.suffixes || [])) {
+        out.push({
+          id: "rune_" + sk.id + "_" + (i++), name: rm.text, text: rm.text, side: rm.side,
+          group: [], tags: base ? [base] : [], mtags: [], ilvl: rm.ilvl || 1,
+          bw: base ? { [base]: [[rm.ilvl || 1, rm.weight || 1, rm.text]] } : {},
+          essence_only: false, src: "rune", rune: name,
+        });
+      }
+    }
+    return out;
+  }
+
   // Core legality check on a proposed target.
   // target = { itemClass, baseName, baseTags, itemLevel, rarity, mods:[modObj...] }
   function checkLegality(target) {
     const out = [];
-    const cap = RARITY_CAP[target.rarity] || RARITY_CAP.Rare;
+    const baseCap = RARITY_CAP[target.rarity] || RARITY_CAP.Rare;
+    const load = socketableLoadout(target);
+    const cap = { p: load.prefixCap, s: load.suffixCap };
     const pre = target.mods.filter(m => m.side === "prefix");
     const suf = target.mods.filter(m => m.side === "suffix");
 
-    if (pre.length > cap.p) out.push({ kind: "bad", text: `${pre.length} prefixes selected, but a ${target.rarity} item allows only ${cap.p}.` });
-    if (suf.length > cap.s) out.push({ kind: "bad", text: `${suf.length} suffixes selected, but a ${target.rarity} item allows only ${cap.s}.` });
+    const pTag = cap.p > baseCap.p ? " (raised by a socketable)" : "";
+    const sTag = cap.s > baseCap.s ? " (raised by a socketable)" : "";
+    if (pre.length > cap.p) out.push({ kind: "bad", text: `${pre.length} prefixes selected, but a ${target.rarity} item allows only ${cap.p}${pTag}.` });
+    if (suf.length > cap.s) out.push({ kind: "bad", text: `${suf.length} suffixes selected, but a ${target.rarity} item allows only ${cap.s}${sTag}.` });
+    if (cap.p > baseCap.p || cap.s > baseCap.s || load.craftedSlots > 1 || load.unlocked.length)
+      out.push({ kind: "ok", text: `Socketables in effect: ${load.craftedSlots} crafted slot(s), cap ${cap.p} prefix / ${cap.s} suffix${load.unlocked.length ? ", unlocks " + load.unlocked.join("/") + " mods" : ""}.` });
 
     // group exclusivity (one mod per group)
     const seen = new Map();
@@ -70,13 +129,15 @@
       if (!tagOk) out.push({ kind: "bad", text: `“${m.text}” cannot roll on a ${target.baseName} (wrong base type).` });
       else if (m.ilvl > target.itemLevel) out.push({ kind: "warn", text: `“${m.text}” needs item level ${m.ilvl}; your item is ${target.itemLevel}.` });
       if (m.essence_only) out.push({ kind: "warn", text: `“${m.text}” is essence-only — it can't be hit by a random slam, only forced by its Essence.` });
+      if (m.src === "rune" && !(target.socketables || []).includes(m.rune)) out.push({ kind: "bad", text: `“${m.text}” needs the ${m.rune} rune socketed to roll on a ${target.baseName}.` });
     }
 
     const ok = out.every(m => m.kind !== "bad");
     if (ok && target.mods.length) {
       out.unshift({ kind: "ok", text: `Legal target: ${pre.length} prefix / ${suf.length} suffix on ${target.baseName}. This item can exist.` });
     }
-    return { ok, messages: out, prefixCount: pre.length, suffixCount: suf.length };
+    return { ok, messages: out, prefixCount: pre.length, suffixCount: suf.length,
+             craftedSlots: load.craftedSlots, prefixCap: cap.p, suffixCap: cap.s, unlocked: load.unlocked };
   }
 
   // Parse a PoE2 clipboard item into a partial target (best effort).
@@ -125,7 +186,7 @@
   }
 
   // ---- expose for node tests; stop here if not in a browser ----
-  const api = { familyText, modEligible, buildFamilies, checkLegality, parseItem };
+  const api = { familyText, modEligible, buildFamilies, checkLegality, parseItem, socketableLoadout, runePoolMods };
   if (typeof module !== "undefined" && module.exports) { module.exports = api; }
   if (typeof document === "undefined") return;
 
@@ -133,7 +194,7 @@
   const $ = sel => document.querySelector(sel);
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
-  const state = { itemClass: null, baseName: null, baseTags: [], itemLevel: 82, rarity: "Rare", mods: [] };
+  const state = { itemClass: null, baseName: null, baseTags: [], itemLevel: 82, rarity: "Rare", mods: [], socketables: [] };
 
   $("#patch").textContent = DB.patch || "?";
 
@@ -152,7 +213,7 @@
     const b = DB.classes[state.itemClass].bases.find(x => x.name === state.baseName);
     state.baseTags = b ? b.tags : [];
     state.mods = []; // reset on base change to avoid illegal carryover
-    renderPicker(); render();
+    renderSockets(); renderPicker(); render();
   }
   classSel.onchange = loadBases;
   baseSel.onchange = loadBase;
@@ -165,7 +226,7 @@
     const list = $("#famlist"); list.innerHTML = "";
     if (!state.itemClass) return;
     const cls = DB.classes[state.itemClass];
-    const pool = cls.prefixes.concat(cls.suffixes).concat(cls.desecrated || []);
+    const pool = cls.prefixes.concat(cls.suffixes).concat(cls.desecrated || []).concat(runePoolMods(state));
     let fams = buildFamilies(pool, state.baseTags, state.itemLevel);
     const q = $("#modSearch").value.trim().toLowerCase();
     if (q) fams = fams.filter(f => f.label.toLowerCase().includes(q));
@@ -174,6 +235,7 @@
       const row = el("div", "fam");
       row.append(el("span", "side " + (f.side === "prefix" ? "tag pre" : "tag suf"), f.side === "prefix" ? "PRE" : "SUF"));
       if (f.tiers[0] && f.tiers[0].src === "desecrated") row.append(el("span", "tag ess", "DESEC"));
+      if (f.tiers[0] && f.tiers[0].src === "rune") row.append(el("span", "tag rune", "RUNE"));
       row.append(el("span", "ft", f.label));
       const sel = el("select");
       f.tiers.forEach((t, i) => sel.append(new Option(`${t.text}  · ilvl ${t.ilvl}`, i)));
@@ -182,6 +244,37 @@
       add.onclick = () => { addMod(f.tiers[+sel.value]); };
       row.append(add);
       list.append(row);
+    });
+  }
+
+  // Equipped-socketable picker (Phase C). Lists the cap/pool runes that apply to the current item
+  // class (Astrid's Creativity, Serle's Triumph, the class's "Can roll X" rune); toggling one updates
+  // state.socketables, which checkLegality + the planner read. Off-class socketables are dropped.
+  function renderSockets() {
+    const list = $("#socklist"); if (!list) return; list.innerHTML = "";
+    const hint = $("#sockHint");
+    if (!state.itemClass) { if (hint) hint.textContent = ""; return; }
+    const apply = (DB.socketables || []).filter(s =>
+      ["cap_crafted", "cap_suffix", "cap_prefix", "pool_unlock"].includes(s.effect) &&
+      ((s.scope || []).includes("all") || (s.scope || []).includes(state.itemClass)));
+    state.socketables = (state.socketables || []).filter(n => apply.some(s => s.name === n));
+    if (hint) hint.textContent = apply.length ? `· ${apply.length} apply to ${state.itemClass}` : "· none for this class";
+    apply.forEach(s => {
+      const row = el("div", "sock");
+      const cb = el("input"); cb.type = "checkbox"; cb.id = "sk_" + s.id;
+      cb.checked = state.socketables.includes(s.name);
+      cb.onchange = () => {
+        if (cb.checked) { if (!state.socketables.includes(s.name)) state.socketables.push(s.name); }
+        else state.socketables = state.socketables.filter(n => n !== s.name);
+        renderPicker(); render();
+      };
+      const eff = s.effect === "cap_crafted" ? "+1 crafted-mod slot"
+        : s.effect === "cap_suffix" ? "+1 suffix slot (7th mod)"
+        : s.effect === "cap_prefix" ? "+1 prefix slot"
+        : "unlocks " + s.unlocks + " mods";
+      const lab = el("label", "sock-lab"); lab.htmlFor = cb.id;
+      lab.innerHTML = `<b>${s.name}</b> <span class="hint">${s.stype} · ${eff}</span>`;
+      row.append(cb); row.append(lab); list.append(row);
     });
   }
 

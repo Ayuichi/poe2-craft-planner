@@ -109,6 +109,38 @@
     return best;
   }
 
+  // How many crafted-mod slots this item has: 1 by default, +1 per equipped cap_crafted socketable
+  // (Astrid's Creativity) whose scope covers the item class. Phase D (D1).
+  function craftedSlots(target, db) {
+    let n = 1;
+    const list = (db && db.socketables) || [];
+    for (const name of (target.socketables || [])) {
+      const sk = list.find(x => x.name === name);
+      if (sk && sk.effect === "cap_crafted" &&
+          ((sk.scope || []).includes("all") || (sk.scope || []).includes(target.itemClass)))
+        n += (sk.value || 1);
+    }
+    return n;
+  }
+
+  // A PERFECT essence (remove+add, works on a Rare) that guarantees `mod` on `itemClass`, or null.
+  // Used for Astrid's 2nd crafted slot, where the item is already Rare. Tier-honest for must-haves.
+  function perfectEssenceFor(mod, itemClass, db) {
+    const list = db && db.essences;
+    if (!list || !mod) return null;
+    const key = statKey(mod.text), tMag = maxNum(mod.text);
+    for (const e of list) {
+      if (e.mode !== "remove_add") continue;
+      for (const g of e.grants) {
+        if (!g.classes.includes(itemClass) || statKey(g.mod) !== key) continue;
+        const gMag = maxNum(g.mod);
+        if (mod.mustHave && tMag != null && gMag != null && gMag < tMag - 1e-9) continue;
+        return { name: e.name, family: e.family, tier: e.tier, mode: e.mode, grantMod: g.mod, classRaw: g.classes_raw };
+      }
+    }
+    return null;
+  }
+
   // ---------------------------------------------------------------------------
   // Eligible-pool helpers — the honest "grindiness" signal.
   // ---------------------------------------------------------------------------
@@ -275,17 +307,40 @@
     let tw = modWeight(m, target.baseName, reqIlvl);
     if (!tw) { const dd = (c.desecrated || []).find(d => d.id === m.id); tw = dd ? (modWeight(dd, target.baseName, reqIlvl) || 1) : 1; }
     if (!tw) tw = 1;
-    return Math.max(1, Math.round((pw / tw) / 3));
+    // D2 (2026-06-22): CAP the estimate. Desecration is a guided, BOUNDED placement (side
+    // Necromancy omen + Abyssal Echoes reroll + Omen of Light retries, and the lich omens narrow
+    // the pool), so landing a specific reveal costs a handful of Well visits, not the raw
+    // weight-share. The uncapped ratio exploded for tiny-weight desecrate-exclusive mods (e.g.
+    // effort 3331), making the route-ranking number meaningless. Cap at 12 keeps it honest.
+    return Math.min(12, Math.max(1, Math.round((pw / tw) / 3)));
   }
 
-  // Pool-separation literacy (the master targeting trick): a Rare caps at 3p/3s;
-  // filling one side FORCES exalts onto the other -> deterministic targeting.
-  function forcingNote(target) {
+  // Effective affix caps: RARITY_CAP plus any equipped cap_prefix/cap_suffix socketable in scope
+  // (Serle's Triumph: Rare 3 suffixes -> 4). Phase D (D3).
+  function affixCaps(target, db) {
+    const rc = RARITY_CAP[target.rarity] || RARITY_CAP.Rare;
+    let p = rc.p, s = rc.s;
+    const list = (db && db.socketables) || [];
+    for (const name of (target.socketables || [])) {
+      const sk = list.find(x => x.name === name);
+      if (!sk || !((sk.scope || []).includes("all") || (sk.scope || []).includes(target.itemClass))) continue;
+      if (sk.effect === "cap_prefix") p += (sk.value || 1);
+      else if (sk.effect === "cap_suffix") s += (sk.value || 1);
+    }
+    return { p, s };
+  }
+
+  // Pool-separation literacy (the master targeting trick): an item caps at p prefixes / s suffixes;
+  // filling one side FORCES exalts onto the other -> deterministic targeting. Caps are effective
+  // (a socketable like Serle's Triumph can raise the suffix cap).
+  function forcingNote(target, db) {
     const p = target.mods.filter(m => m.side === "prefix").length;
     const s = target.mods.filter(m => m.side === "suffix").length;
-    const lines = ["Pool-forcing (the key targeting trick): a Rare caps at 3 prefixes / 3 suffixes. Fill the side you DON'T need up to 3, and every later Exalt is FORCED onto the open side — no Sinistral/Dextral omen, no Annul-retry needed."];
-    if (p >= 3 && s < 3) lines.push("Here your 3 prefixes fill that pool, so suffix Exalts land on the guaranteed side once the prefixes are placed.");
-    else if (s >= 3 && p < 3) lines.push("Here your 3 suffixes fill that pool, so prefix Exalts land on the guaranteed side once the suffixes are placed.");
+    const cap = affixCaps(target, db);
+    const raised = (cap.p > 3 || cap.s > 3) ? " (a socketable has raised a cap here)" : "";
+    const lines = [`Pool-forcing (the key targeting trick): this item caps at ${cap.p} prefixes / ${cap.s} suffixes${raised}. Fill the side you DON'T need up to its cap, and every later Exalt is FORCED onto the open side — no Sinistral/Dextral omen, no Annul-retry needed.`];
+    if (p >= cap.p && s < cap.s) lines.push(`Here your ${p} prefixes fill that pool, so suffix Exalts land on the guaranteed side once the prefixes are placed.`);
+    else if (s >= cap.s && p < cap.p) lines.push(`Here your ${s} suffixes fill that pool, so prefix Exalts land on the guaranteed side once the suffixes are placed.`);
     else if (p && s) lines.push(`Here you have ${p} prefix + ${s} suffix target(s): whichever side is rarer to hit, fill the OTHER side first to force it.`);
     return lines.join(" ");
   }
@@ -823,22 +878,62 @@
       const sh = modShare(m, target, db, reqIlvl); const s = (sh == null) ? 0.5 : sh;
       if (s < essShare) { essShare = s; essTarget = m; ess = e; }
     }
-    // 2) DESECRATE the hardest remaining MUST-HAVE essence can't get — but ONLY when it COLLIDES
-    //    with a same-side keeper. Safety model: an Exalt only ADDS (zero risk); the risk is the
-    //    RETRY removal. If the target is the LONE wanted mod on its side, a side-targeted Annul
-    //    removes just the failed junk (clean), so exalt-fill is cheaper and desecration would be
-    //    wasted. Desecration earns its one slot only when another wanted mod shares the target's
-    //    side — then no side omen can isolate the retry, and Omen of Light's precise removal (or
-    //    the no-removal Abyssal Echoes reroll) is the cheapest SAFE placement. (Nothing is fractured
-    //    in this route, and the essence/teal mod is treated as annullable, so every other goal mod
-    //    on the same side counts as an at-risk keeper.)
+    // T1: if NO must-have claimed the crafted slot (essences cap below top tier, so a top-tier
+    // must-have usually can't be essence-guaranteed), fall through and ESSENCE the hardest
+    // essence-able WISH at its honest lower tier instead of leaving the one crafted slot idle and
+    // slamming the wish. A guaranteed lower-tier roll beats an open-ended gamble. Pick the wish that
+    // saves the most slams; tie-break on the smallest tier drop from the wanted value.
+    let essIsWish = false;
+    if (!essTarget) {
+      let best = null;
+      for (const m of remaining) {
+        if (must.has(m)) continue; // wishes only
+        const e = essenceFor(Object.assign({}, m, { mustHave: false }), target.itemClass, db);
+        if (!e || e.mode !== "magic_to_rare") continue;
+        const slams = expectedSlams(m, target, db, reqIlvl);
+        const drop = Math.max(0, (maxNum(m.text) || 0) - (maxNum(e.grantMod) || 0));
+        if (!best || slams > best.slams || (slams === best.slams && drop < best.drop)) best = { m, e, slams, drop };
+      }
+      if (best) { essTarget = best.m; ess = best.e; essIsWish = true; }
+    }
+    // D1 (Astrid's Creativity): a 2nd crafted slot lets the route guarantee a SECOND mod. The item is
+    // already Rare after the 1st (magic->rare) essence, so the 2nd uses a PERFECT essence (remove+add)
+    // steered with a Crystallisation omen. Pick the next-best mod a Perfect essence can place: a
+    // must-have it reaches at tier first, else the wish that saves the most slams.
+    let essTarget2 = null, ess2 = null, ess2IsWish = false;
+    if (craftedSlots(target, db) >= 2) {
+      let mt = null, me = null, bestShare = Infinity;
+      for (const m of remaining) {
+        if (m === essTarget || !must.has(m)) continue;
+        const e = perfectEssenceFor(m, target.itemClass, db); if (!e) continue;
+        const sh = modShare(m, target, db, reqIlvl); const sc = (sh == null) ? 0.5 : sh;
+        if (sc < bestShare) { bestShare = sc; mt = m; me = e; }
+      }
+      if (mt) { essTarget2 = mt; ess2 = me; }
+      else {
+        let best = null;
+        for (const m of remaining) {
+          if (m === essTarget || must.has(m)) continue;
+          const e = perfectEssenceFor(Object.assign({}, m, { mustHave: false }), target.itemClass, db); if (!e) continue;
+          const slams = expectedSlams(m, target, db, reqIlvl);
+          const drop = Math.max(0, (maxNum(m.text) || 0) - (maxNum(e.grantMod) || 0));
+          if (!best || slams > best.slams || (slams === best.slams && drop < best.drop)) best = { m, e, slams, drop };
+        }
+        if (best) { essTarget2 = best.m; ess2 = best.e; ess2IsWish = true; }
+      }
+    }
+    // 2) DESECRATE the hardest remaining MUST-HAVE essence can't get. D1 (decided 2026-06-22:
+    //    optimize for DETERMINISM over currency): reserve the one desecrate slot for the hardest
+    //    grindy must-have desecration can place, EVEN IF it is alone on its side. The earlier
+    //    same-side-keeper gate skipped lone-on-side mods because an Exalt + side-targeted Annul retry
+    //    is clean and a touch cheaper — but it is still a GAMBLE on which mod lands, whereas a
+    //    desecrate is a guided, bounded placement. Per the determinism-first goal we spend the slot
+    //    to make that mod deterministic rather than leaving it to the slam.
     let hardRem = null, di = null;
     for (let i = mustRem.length - 1; i >= 0; i--) {
       const m = mustRem[i];
-      if (m === essTarget) continue;
+      if (m === essTarget || m === essTarget2) continue;
       if (expectedSlams(m, target, db, reqIlvl) < 4) continue;
-      const sameSideKeeper = target.mods.some(k => k !== m && k.side === m.side);
-      if (!sameSideKeeper) continue; // lone on its side -> exalt + side-Annul is clean & cheaper
       const info = desecrateInfo(m, target.itemClass, target.baseName, db);
       if (info) { hardRem = m; di = info; break; }
     }
@@ -858,9 +953,14 @@
     if (essTarget) {
       (essTarget.group || []).forEach(g => usedGroups.add(g));
       placed.push(targetMod(essTarget, "anchor"));
+      const wantMag = maxNum(essTarget.text), gotMag = maxNum(ess.grantMod);
+      const lowerTier = essIsWish && wantMag != null && gotMag != null && gotMag < wantMag - 1e-9;
+      const essDetail = lowerTier
+        ? `Apply to the Magic base: Magic → Rare and GUARANTEES “${ess.grantMod}”. Your goal wanted “${essTarget.text}”, so this is the deterministic LOWER-TIER fill of a wish: you trade the top roll for a guaranteed one (take it, or skip the essence and slam for the higher tier). It spends your ONE crafted-mod slot, which would otherwise sit idle here.`
+        : `Apply to the Magic base: Magic → Rare and GUARANTEES “${ess.grantMod}” (top tier), your next-hardest mod. Spends your ONE crafted-mod slot. Two mods now locked, open slots to fill.`;
       steps.push(mkStep(
         ess.best.name, ess.tiers.map(t => t.name),
-        `Apply to the Magic base: Magic → Rare and GUARANTEES “${ess.grantMod}” (top tier), your next-hardest mod. Spends your ONE crafted-mod slot. Two mods now locked, open slots to fill.`,
+        essDetail,
         "deterministic", "Rare", placed.slice().sort(bySide)));
     } else {
       steps.push(mkStep(
@@ -869,8 +969,21 @@
         "gamble", "Rare", placed.concat([INCIDENTAL]).slice().sort(bySide)));
     }
 
+    // 2b — Astrid's 2nd crafted slot: a PERFECT essence (remove+add) guarantees a SECOND mod on the Rare.
+    if (essTarget2) {
+      (essTarget2.group || []).forEach(g => usedGroups.add(g));
+      placed.push(targetMod(essTarget2, "anchor"));
+      const cryst = essTarget2.side === "prefix" ? "Sinistral" : "Dextral"; // remove from the side we add to, to make room
+      const w2 = maxNum(essTarget2.text), g2 = maxNum(ess2.grantMod);
+      const low2 = ess2IsWish && w2 != null && g2 != null && g2 < w2 - 1e-9;
+      steps.push(mkStep(
+        ess2.name, [ess2.name, "+ Omen of " + cryst + " Crystallisation"],
+        `Astrid's Creativity grants a SECOND crafted-mod slot. The item is already Rare, so use a PERFECT essence (removes 1 random mod, adds a guaranteed one) to lock in “${ess2.grantMod}”${low2 ? " (a deterministic LOWER-TIER fill of your “" + essTarget2.text + "” wish)" : ""}. Pair it with Omen of ${cryst} Crystallisation so the removal only hits a ${essTarget2.side} (making room on the side you're adding to) and the other side's mods stay safe. This spends your 2nd of 2 crafted slots.`,
+        "deterministic", "Rare", placed.slice().sort(bySide)));
+    }
+
     // 3 — fill the cheap remaining mods with side-forced Exalts (skip the desecrate target).
-    const exaltFills = remaining.filter(m => m !== essTarget && !(useDesecrate && m === hardRem));
+    const exaltFills = remaining.filter(m => m !== essTarget && m !== essTarget2 && !(useDesecrate && m === hardRem));
     for (const m of exaltFills) {
       const omen = m.side === "prefix" ? "Sinistral Exaltation (prefix)" : "Dextral Exaltation (suffix)";
       const od = oddsFor(m, elig, usedGroups, target.baseName, reqIlvl);
@@ -889,8 +1002,8 @@
       placed.push(targetMod(hardRem, "anchor"));
       steps.push(mkStep(
         "Desecrate the last hard mod",
-        ["Preserved/Ancient Bone", `+ Omen of ${omen}`, "+ Omen of Abyssal Echoes (1 free reroll)", "+ Omen of Light + Annul (strip & retry)"],
-        `With the cheap slots filled, the ${hardRem.side} pool is now constrained and “${hardRem.text}” is hard to land by Exalt (${oddsTxt(hardRem)}). THIS is what your one desecration slot is for: bone + Omen of ${omen} forces a ${hardRem.side}; pick it from the Well reveal (bad reveal? Omen of Abyssal Echoes rerolls the 3 once; then Omen of Light + Annul strips & re-desecrates). Deterministic, cost = retries — saved for here, not wasted on the carry mod you bought.`,
+        ["Preserved/Ancient Bone", `+ Omen of ${omen}`, "+ (if lich-exclusive) the matching lich omen", "+ Omen of Abyssal Echoes (1 free reroll)", "+ Omen of Light + Annul (strip & retry)"],
+        `With the cheap slots filled, the ${hardRem.side} pool is now constrained and “${hardRem.text}” is hard to land by Exalt (${oddsTxt(hardRem)}). THIS is what your one desecration slot is for: bone + Omen of ${omen} forces a ${hardRem.side}; pick it from the Well reveal (bad reveal? Omen of Abyssal Echoes rerolls the 3 once; then Omen of Light + Annul strips & re-desecrates). If “${hardRem.text}” is a lich-exclusive mod, also add the matching lich omen (Blackblooded=Kurgal / Liege=Amanamu / Sovereign=Ulaman) to force that pool — poe2db's Desecrated Modifiers list shows which lich carries it. Deterministic, cost = retries — saved for here, not wasted on the carry mod you bought.`,
         "deterministic", "Rare", placed.slice().sort(bySide)));
     }
 
@@ -899,6 +1012,7 @@
     // Price the route ourselves: the bought carry costs ~0 slams; essence/regal ~1; each exalt
     // fill ~ its expected slams; the reserved desecration ~ its reveal count.
     let effort = essTarget ? 1 : 1;
+    if (essTarget2) effort += 1;
     for (const m of exaltFills) effort += expectedSlams(m, target, db, reqIlvl);
     if (useDesecrate) effort += desecrateReveals(hardRem, target, db, reqIlvl);
 
@@ -929,7 +1043,7 @@
   function buildNotes(target, db) {
     const notes = [
       "Start from your carry mod: find the single hardest-to-roll mod in the goal and BUY a base that already has it — don't gamble it onto a white base. Then build the rest with cheap clean prefix/suffix manipulation (Transmute/Regal/Exalt + side omens), and SAVE the one-per-item premium tools (desecration, fracture) for a later mod that the affix pools can no longer cleanly target. Spending desecration on the very first mod is the classic beginner trap.",
-      forcingNote(target),
+      forcingNote(target, db),
     ];
     // Essence tier shortfall: an essence matches the family but can't reach the chosen tier.
     const shortfalls = [];
@@ -955,6 +1069,7 @@
     }
     notes.push("Two different tools, often confused. FRACTURE = true immunity: a fractured mod can't be removed by annul/chaos at all, so once you fracture e.g. a prefix you can chaos/exalt-spam the OTHER side with zero risk to it. DESECRATION is NOT immune — a plain annul can still remove a desecrated mod — but Omen of Light lets you TARGET it (an Annul under Omen of Light always hits the desecrated mod), making it deterministically placeable and precisely swappable. Use FRACTURE to lock, DESECRATION to place-and-control.");
     notes.push("Runic Alloys & Lich mods: some endgame mods only come from a Runic Alloy or from Desecration at the Well of Souls. An Alloy mod uses your one crafted slot (mutually exclusive with essences); a desecrated mod uses the separate one-desecrated slot. Cross-check the target on PoE2DB to see if any mod here is alloy/desecrate-only.");
+    notes.push("Lich pools (desecration): a desecrated mod comes from one of three lich pools — force it with the matching lich omen: Omen of the Blackblooded (Kurgal), Omen of the Liege (Amanamu), Omen of the Sovereign (Ulaman). Stacked with a Sinistral/Dextral Necromancy (side) omen this narrows the Well reveal hard. Find which lich carries your target on poe2db's Desecrated Modifiers list (we don't have a mod->lich map in-app yet). Note: the lich GAZES (Kurgal's/Amanamu's/Ulaman's/Tecrod's Gaze) are NOT a crafting tool — they are soul cores that grant a fixed stat when socketed, irrelevant to the desecration pools.");
     notes.push("Odds note: '~X% per slam' uses Craft of Exile's extrapolated weights — community estimates, not official GGG data. Treat them as solid relative effort, not exact probability.");
     // Stage 4b-ii: base-implicit shortcuts.
     const impHits = [];

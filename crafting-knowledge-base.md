@@ -202,9 +202,15 @@ The ones that matter for a craft planner, because they relax our structural assu
 | **Vorana's Carnage** | "Can roll Berserking modifiers" | Unlocks the Berserking mod family. |
 
 Also confirmed in the same data: **Greater/Perfect Iron Rune** = % increased Physical Damage on
-weapons (Armour/Evasion/ES on armour); the lich **Gazes** are SOUL CORES (`Kurgal's Gaze`,
-`Amanamu's Gaze`, `Ulaman's Gaze`, `Tecrod's Gaze`), each granting a class-specific lich mod via a
-socket (an alternative to desecration omens). bgroup → item-type map (from the same dump):
+weapons (Armour/Evasion/ES on armour). The lich **Gazes** (`Kurgal's Gaze`, `Amanamu's Gaze`,
+`Ulaman's Gaze`, `Tecrod's Gaze`) are SOUL CORES / "Abyssal Eye" augments that grant a single FIXED
+stat depending on the item type they're socketed into (e.g. Amanamu's Gaze: Helmets remove a
+damaging ailment on Command Skill use, Body Armours give +2 Armour per Spirit, Boots give movement
+speed per Spirit). **They are NOT a crafting/desecration tool** — they do not place desecrated mods
+and have nothing to do with the lich desecration pools, despite the shared lich names. (Earlier draft
+wrongly called them "an alternative to desecration"; corrected 2026-06-23.) The actual lich
+desecration tools are the OMENS (Blackblooded/Liege/Sovereign), see section 5. bgroup → item-type map
+(from the same dump):
 1=Jewellery, 2=Body Armours, 3=Boots, 4=Helmets, 5=Gloves, 9=Jewels, 10=Flasks, 13=Charms; socket
 counts confirm Body Armour=2, Gloves/Boots/Helmets=1, Jewellery=0.
 

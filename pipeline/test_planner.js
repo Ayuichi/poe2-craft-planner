@@ -8,6 +8,7 @@ global.window = {};
 require(path.join(__dirname, "..", "app", "poe2_data.js")); // populates window.POE2
 const DB = global.window.POE2;
 const planner = require(path.join(__dirname, "..", "app", "planner.js"));
+const legality = require(path.join(__dirname, "..", "app", "app.js")); // checkLegality + socketableLoadout
 
 let fails = 0;
 const ok = (cond, msg) => { if (!cond) { console.error("  ✗ " + msg); fails++; } else console.log("  ✓ " + msg); };
@@ -186,12 +187,13 @@ ok(acq && ladderN && acq.effort < ladderN.effort,
 ok(!nPlan.routes.some(r => /^Desecration anchor/.test(r.name)),
    "no standalone desecration route for a normal goal (desecration not spent on the carry)");
 ok(nPlan.routes.some(r => !/Acquire/.test(r.name)), "from-white fallback routes still present");
-// Safety model: rareP + rareS are on OPPOSITE sides, so each is the lone wanted mod on its side —
-// a side-targeted Exalt + same-side Annul retry is clean (no keeper at risk). Desecration would be
-// wasted here, so the acquire route must NOT reserve a desecration step for an opposite-side goal.
+// D1 (decided 2026-06-22, DETERMINISM over currency): rareP + rareS are each lone on their side, so
+// the earlier same-side-keeper gate would skip desecration and exalt-fill the second mod. Under the
+// determinism-first objective the acquire route now SPENDS its one desecrate slot to make that hard
+// lone-on-side must-have deterministic instead of gambling it.
 ok(rareP.side !== rareS.side, "regression goal has its two hard mods on opposite sides");
-ok(acq && !acq.steps.some(s => /Desecrate the last hard mod/.test(s.action)),
-   "opposite-side goal: NO desecration step (lone-on-side mods exalt cleanly via side-targeted Annul)");
+ok(acq && acq.steps.some(s => /Desecrate the last hard mod/.test(s.action)),
+   "opposite-side goal: D1 desecrates the lone-on-side hard must-have (determinism > saved currency)");
 
 // But when two hard mods COLLIDE on the same side, the retry can't be side-isolated, so the acquire
 // route DOES reserve its one desecration slot for the second one (placed LAST, after the carry).
@@ -204,6 +206,25 @@ ok(rarePs.length === 2 && rarePs[0].side === "prefix" && rarePs[1].side === "pre
 const desStep = ssAcq && ssAcq.steps.find(s => /Desecrate the last hard mod/.test(s.action));
 ok(!!desStep && desStep.determinism === "deterministic",
    "same-side goal: acquire route reserves a deterministic desecration STEP (collision -> safe placement)");
+
+// T1 (2026-06-22): when NO must-have can claim the crafted (essence) slot (top-tier must-haves
+// exceed what essences guarantee), the acquire route fills the otherwise-idle slot by essencing the
+// hardest essence-able WISH at its honest lower tier, instead of a bare Regal + slamming the wish.
+const t1c = DB.classes["Ring"];
+const t1b = t1c.bases[t1c.bases.length - 1];
+const t1pick = (re, side, must) => {
+  const m = t1c.prefixes.concat(t1c.suffixes).find(x => re.test(x.text) && x.side === side && x.tags.includes(t1b.name));
+  return Object.assign({}, m, must ? { mustHave: true } : {});
+};
+const t1goal = { itemClass: "Ring", baseName: t1b.name, baseTags: t1b.tags, itemLevel: 82, rarity: "Rare",
+  mods: [t1pick(/to maximum Life/i, "prefix", true), t1pick(/to Cold Resistance/i, "suffix", true), t1pick(/to maximum Mana/i, "prefix", false)] };
+const t1acq = planner.planRoutes(t1goal, DB).routes.find(r => /Acquire the carry base/.test(r.name));
+const t1ess = t1acq && t1acq.steps.find(s => /Essence/.test(s.action) && s.determinism === "deterministic");
+ok(!!t1ess, "T1: acquire route uses the crafted slot (an Essence step), not a bare Regal");
+ok(t1ess && t1ess.state.mods.some(m => /maximum Mana/.test(m.text) && m.kind === "anchor"),
+   "T1: the essence guarantees the essence-able WISH (Mana), instead of leaving it to a slam");
+ok(t1ess && /LOWER-TIER fill of a wish/.test(t1ess.detail),
+   "T1: the wish-essence step is honestly labelled as a deterministic lower-tier fill");
 
 // Fracture-anchor + chaos-target (Stage 4b): fires only when a side has 2+ hard, non-essence mods.
 const fr_c = DB.classes["Amulet"]; const fr_b = fr_c.bases[0];
@@ -330,6 +351,69 @@ const scPlan = planner.planRoutes({ itemClass: "Sceptre", baseName: "Sceptre", b
   mods: [ DB.classes.Sceptre.suffixes.find(m => /Level of all Minion/.test(m.name)),
           DB.classes.Sceptre.prefixes.find(m => /increased Spirit/.test(m.name)) ] }, DB);
 ok(!scPlan.notes.some(t => /Catalysts \(jewellery\)/.test(t)), "no catalyst note on non-jewellery (sceptre)");
+
+// ---------------------------------------------------------------------------
+// Phase C: checkLegality reads an equipped-socketable loadout (caps + crafted slots).
+// ---------------------------------------------------------------------------
+console.log("\n== Socketables: legality loadout (Phase C) ==");
+const cAmu = DB.classes.Amulet, cBase = cAmu.bases[cAmu.bases.length - 1];
+const four = cAmu.suffixes.filter(m => m.tags.includes(cBase.name) && m.ilvl <= 82).slice(0, 4);
+const goalS = sk => ({ itemClass: "Amulet", baseName: cBase.name, baseTags: cBase.tags, itemLevel: 82, rarity: "Rare", mods: four, socketables: sk });
+const legNo = legality.checkLegality(goalS([]));
+const legYes = legality.checkLegality(goalS(["Serle's Triumph"]));
+ok(legNo.ok === false && legNo.suffixCap === 3, "4 suffixes is ILLEGAL with no socketable (Rare cap 3)");
+ok(legYes.ok === true && legYes.suffixCap === 4, "4 suffixes is LEGAL with Serle's Triumph (suffix cap raised to 4)");
+ok(legYes.messages.some(m => /Socketables in effect/.test(m.text)), "Serle's: legality surfaces a 'Socketables in effect' info line");
+ok(legality.socketableLoadout({ itemClass: "Amulet", rarity: "Rare", socketables: ["Astrid's Creativity"] }).craftedSlots === 2,
+   "Astrid's Creativity grants a 2nd crafted slot (craftedSlots = 2)");
+ok(legality.socketableLoadout({ itemClass: "Amulet", rarity: "Rare", socketables: ["Kolr's Hunt"] }).unlocked.length === 0,
+   "Kolr's Hunt (Gloves-only) does NOT apply to an Amulet (scope respected)");
+ok(legality.socketableLoadout({ itemClass: "Gloves", rarity: "Rare", socketables: ["Kolr's Hunt"] }).unlocked[0] === "Marksman",
+   "Kolr's Hunt on Gloves records the unlocked Marksman family");
+
+// Phase C pool_unlock: an equipped rune adds its mod pool to the eligible mods for that item class.
+const pcG = DB.classes.Gloves, pcB = pcG.bases[pcG.bases.length - 1];
+const kolrMods = legality.runePoolMods({ itemClass: "Gloves", baseName: pcB.name, socketables: ["Kolr's Hunt"] });
+ok(kolrMods.length > 0 && kolrMods.every(m => m.src === "rune" && m.tags.includes(pcB.name)),
+   "runePoolMods builds Kolr's Hunt mods tagged to the gloves base");
+const projD = kolrMods.find(m => /Projectile Damage/.test(m.text));
+const gmk = sk => ({ itemClass: "Gloves", baseName: pcB.name, baseTags: pcB.tags, itemLevel: 82, rarity: "Rare", mods: [projD], socketables: sk });
+ok(legality.checkLegality(gmk(["Kolr's Hunt"])).ok === true, "a Marksman mod is LEGAL on Gloves with Kolr's Hunt equipped");
+ok(legality.checkLegality(gmk([])).ok === false, "the same Marksman mod is ILLEGAL without the rune socketed");
+ok(legality.runePoolMods({ itemClass: "Ring", baseName: "Ring", socketables: ["Kolr's Hunt"] }).length === 0,
+   "Kolr's Hunt unlocks nothing on a Ring (scope respected)");
+
+// Phase D1: Astrid's Creativity (2nd crafted slot) places a 2nd guaranteed mod via a Perfect essence.
+const d1c = DB.classes.Ring, d1b = d1c.bases[d1c.bases.length - 1];
+const d1pick = (re, side, must) => { const m = d1c.prefixes.concat(d1c.suffixes).find(x => re.test(x.text) && x.side === side && x.tags.includes(d1b.name)); return Object.assign({}, m, must ? { mustHave: true } : {}); };
+const d1goal = sk => ({ itemClass: "Ring", baseName: d1b.name, baseTags: d1b.tags, itemLevel: 82, rarity: "Rare",
+  mods: [d1pick(/to maximum Life/i, "prefix", true), d1pick(/to Cold Resistance/i, "suffix", false), d1pick(/Mana Regeneration Rate/i, "suffix", false)], socketables: sk });
+const essCount = r => r.steps.filter(s => /Essence/.test(s.action)).length;
+const d1no = planner.planRoutes(d1goal([]), DB).routes.find(r => /Acquire/.test(r.name));
+const d1yes = planner.planRoutes(d1goal(["Astrid's Creativity"]), DB).routes.find(r => /Acquire/.test(r.name));
+ok(essCount(d1no) === 1, "without Astrid's: the acquire route uses 1 essence (one crafted slot)");
+ok(essCount(d1yes) === 2, "with Astrid's Creativity: the route uses a 2nd crafted slot (a Perfect essence)");
+ok(d1yes.steps.some(s => /2nd of 2 crafted slots/.test(s.detail) && s.determinism === "deterministic"),
+   "the 2nd-slot step is a deterministic Perfect-essence placement (Astrid's)");
+
+// Phase D3: Serle's Triumph raises the suffix cap, so a 4-suffix goal plans and the note reflects it.
+const d3c = DB.classes.Amulet, d3b = d3c.bases[d3c.bases.length - 1];
+const d3pick = (re, side, must) => { const m = d3c.prefixes.concat(d3c.suffixes).find(x => re.test(x.text) && x.side === side && x.tags.includes(d3b.name)); return Object.assign({}, m, must ? { mustHave: true } : {}); };
+const d3goal = { itemClass: "Amulet", baseName: d3b.name, baseTags: d3b.tags, itemLevel: 82, rarity: "Rare", mods: [
+  d3pick(/to Spirit$/i, "prefix", true), d3pick(/to Cold Resistance/i, "suffix", true), d3pick(/to Fire Resistance/i, "suffix", false),
+  d3pick(/to Lightning Resistance/i, "suffix", false), d3pick(/Critical Hit Chance/i, "suffix", false)], socketables: ["Serle's Triumph"] };
+const d3plan = planner.planRoutes(d3goal, DB);
+ok(/caps at 3 prefixes \/ 4 suffixes/.test(d3plan.notes.find(n => /Pool-forcing/.test(n)) || ""),
+   "D3: pool-forcing note reflects Serle's raised suffix cap (4)");
+const d3rec = d3plan.routes.find(r => r.recommended);
+const d3suf = new Set(); d3rec.steps.forEach(s => s.state.mods.forEach(m => { if (m.side === "suffix" && (m.kind === "target" || m.kind === "anchor")) d3suf.add(m.text); }));
+ok(d3suf.size === 4, "D3: the route places all 4 suffixes (legal via Serle's Triumph)");
+
+// Phase D2: lich-pool omen guidance is surfaced (omen->lich mapping + Gaze alternative).
+const d2note = planner.planRoutes(d3goal, DB).notes.find(n => /Lich pools/.test(n)) || "";
+ok(/Blackblooded \(Kurgal\)/.test(d2note) && /Liege \(Amanamu\)/.test(d2note) && /Sovereign \(Ulaman\)/.test(d2note),
+   "D2: the lich-pool note maps each omen to its lich");
+ok(/NOT a crafting tool/.test(d2note), "D2: the note clarifies the Gazes are stat soul cores, NOT a crafting/desecration tool");
 
 console.log("\n" + (fails ? `FAILED: ${fails} assertion(s)` : "ALL PASSED"));
 process.exit(fails ? 1 : 0);

@@ -48,12 +48,16 @@
   .tag.pre{background:#1d2c3d;color:var(--prefix)}
   .tag.suf{background:#332b18;color:var(--suffix)}
   .tag.ess{background:#2a1d33;color:#c79be0}
+  .tag.rune{background:#33270f;color:#e8b84b}
   .x{cursor:pointer;color:var(--bad);font-weight:700;padding:0 4px}
   .slotcount{font-size:11px;color:var(--muted)}
 
   /* mod picker */
   .picker{margin-top:12px;border-top:1px solid var(--edge);padding-top:10px}
   .famlist{max-height:340px;overflow:auto;border:1px solid var(--edge);border-radius:6px;margin-top:6px}
+  .socklist{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+  .sock{display:flex;align-items:center;gap:8px;font-size:12px}
+  .sock-lab{cursor:pointer}
   .fam{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #251c14}
   .fam:hover{background:var(--panel2)}
   .fam .ft{flex:1;font-size:13px}
@@ -139,6 +143,11 @@
               <option>Rare</option><option>Magic</option>
             </select>
           </div>
+        </div>
+
+        <div class="picker">
+          <label>Equipped socketables <span class="hint" id="sockHint"></span></label>
+          <div class="socklist" id="socklist"></div>
         </div>
 
         <div class="picker">

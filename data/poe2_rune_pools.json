@@ -1,0 +1,513 @@
+{
+ "_meta": {
+  "source": "poe2db screenshots (2026-06-22)",
+  "note": "Per-rune unlocked mod pools. weights are approximate (read from poe2db Tiers/iLvl/Weights columns). '#' = value range collapsed across tiers on poe2db.",
+  "runes": 6
+ },
+ "byRune": {
+  "Kolr's Hunt": {
+   "prefixes": [
+    {
+     "text": "#% increased Projectile Damage",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 3
+    },
+    {
+     "text": "#% increased Effect of your Mark Skills",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Projectile Speed",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 3
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "#% increased Critical Hit Chance",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 3
+    },
+    {
+     "text": "#% chance to Pierce an Enemy",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% Surpassing chance to fire an additional Projectile",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Projectiles have #% chance to Chain an additional time from terrain",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Projectiles have #% chance for an additional Projectile when Forking",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Mark Skills have #% increased Skill Effect Duration",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Mark Skills have #% increased Use Speed",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "# to Level of all Mark Skills",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 4
+    },
+    {
+     "text": "# to Level of all Projectile Skills",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 4
+    }
+   ]
+  },
+  "Katla's Gloom": {
+   "prefixes": [
+    {
+     "text": "#% increased Ignite Magnitude",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Magnitude of Bleeding you inflict",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Magnitude of Poison you inflict",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Magnitude of Ailments you inflict",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Damaging Ailments deal damage #% faster",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "#% increased Duration of Damaging Ailments on Enemies",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Leech #% of Physical Attack Damage as Life, Leech Life #% faster",
+     "side": "suffix",
+     "ilvl": 45,
+     "weight": 2
+    },
+    {
+     "text": "Leech #% of Physical Attack Damage as Life, Leech Life #% slower",
+     "side": "suffix",
+     "ilvl": 45,
+     "weight": 2
+    },
+    {
+     "text": "(30-40)% increased amount of Life Leeched",
+     "side": "suffix",
+     "ilvl": 45,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Withered Magnitude",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Curse Magnitudes",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Exposure Effect",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "(50-99)% increased Curse Duration",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 1
+    },
+    {
+     "text": "(20-30)% faster Curse Activation",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 1
+    }
+   ]
+  },
+  "Medved's Tending": {
+   "prefixes": [
+    {
+     "text": "(1-20)% increased maximum Life",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "(1-20)% increased maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "(1-20)% increased Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "+(19-189) to maximum Life, +(19-189) to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour and Evasion, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour and Energy Shield, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Evasion and Energy Shield, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Evasion Rating, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Energy Shield, # to Spirit",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour and Evasion, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour and Energy Shield, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Evasion and Energy Shield, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Armour, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Evasion Rating, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Energy Shield, # to maximum Mana",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "(5-50)% reduced Duration of Ailments on You",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "Hits against you have (10-99)% reduced Critical Damage Bonus",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "+(3-31)% to Fire and Chaos Resistances",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "+(3-31)% to Cold and Chaos Resistances",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "+(3-31)% to Lightning and Chaos Resistances",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    }
+   ]
+  },
+  "Thrud's Might": {
+   "prefixes": [
+    {
+     "text": "(25-30)% increased Explicit Speed Modifier magnitudes",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "(20-30)% increased Explicit Critical Modifier magnitudes",
+     "side": "prefix",
+     "ilvl": 65,
+     "weight": 1
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "(10-15)% increased Explicit Physical Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "#% increased Explicit Fire Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 4
+    },
+    {
+     "text": "#% increased Explicit Lightning Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 4
+    },
+    {
+     "text": "#% increased Explicit Cold Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 4
+    },
+    {
+     "text": "#% increased Explicit Elemental Damage Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "(15-20)% increased Explicit Chaos Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    },
+    {
+     "text": "(25-30)% increased Explicit Mana Modifier magnitudes",
+     "side": "suffix",
+     "ilvl": 65,
+     "weight": 1
+    }
+   ]
+  },
+  "Uhtred's Sidereus": {
+   "prefixes": [
+    {
+     "text": "#% increased Movement Speed, #% reduced Slowing Potency of Debuffs on You",
+     "side": "prefix",
+     "ilvl": 78,
+     "weight": 3
+    },
+    {
+     "text": "#% increased Movement Speed while Sprinting",
+     "side": "prefix",
+     "ilvl": 78,
+     "weight": 2
+    },
+    {
+     "text": "# metres to Dodge Roll distance",
+     "side": "prefix",
+     "ilvl": 78,
+     "weight": 2
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "#% increased Skill Effect Duration",
+     "side": "suffix",
+     "ilvl": 78,
+     "weight": 3
+    },
+    {
+     "text": "#% increased Cooldown Recovery Rate",
+     "side": "suffix",
+     "ilvl": 78,
+     "weight": 3
+    },
+    {
+     "text": "Skills have #% chance to not remove Charges but still count as consuming them",
+     "side": "suffix",
+     "ilvl": 78,
+     "weight": 2
+    },
+    {
+     "text": "Debuffs on you expire #% faster",
+     "side": "suffix",
+     "ilvl": 78,
+     "weight": 2
+    }
+   ]
+  },
+  "Vorana's Carnage": {
+   "prefixes": [
+    {
+     "text": "# to Maximum Rage",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Damage with Warcries",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 3
+    },
+    {
+     "text": "#% increased total Power counted by Warcries",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased effect of Fully Broken Armour",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 3
+    },
+    {
+     "text": "#% increased Glory generation",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Rage Cost Efficiency",
+     "side": "prefix",
+     "ilvl": 75,
+     "weight": 2
+    }
+   ],
+   "suffixes": [
+    {
+     "text": "Inherent Rage loss starts # second later",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Inherent Rage loss starts # seconds later",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Gain # Rage when Hit by an Enemy",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Warcry Speed",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Warcry Cooldown Recovery Rate",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Warcry Skills have #% increased Area of Effect",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "Recover #% of maximum Life when you use a Warcry",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% increased Armour Break Duration",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    },
+    {
+     "text": "#% chance to build an additional Combo on Hit",
+     "side": "suffix",
+     "ilvl": 75,
+     "weight": 2
+    }
+   ]
+  }
+ }
+}

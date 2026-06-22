@@ -16,17 +16,17 @@ wishes, runs `planRoutes`, and then scores how the RECOMMENDED route places each
 - **secured** = BOUGHT (carry), ESSENCE (crafted slot), DESECRATE, or CHAOS-SET (bounded retries)
 - **gamble** = a raw Exalt/Regal/Transmute slam where which mod lands is random
 
-Headline scorecard from the first 20 runs:
+Headline scorecard:
 
-- Must-haves secured deterministically: **32 / 38 (84%)**. Good.
-- Wishes secured deterministically: **0 / 27 (0%)**. This is the problem this doc is about.
+- Baseline (before fixes): must-haves **32 / 38 (84%)**, wishes **0 / 27 (0%)**.
+- After T1 + D1 + D2 (2026-06-22): must-haves **36 / 38 (95%)**, wishes **13 / 27 (48%)**.
 
 Re-run anytime: `node pipeline/qa20.js` (full), `node pipeline/qa20.js 7` (one run),
 `node pipeline/qa20.js sum` (scorecard + flags only).
 
 ---
 
-## T1 (TOP PRIORITY) — Essence/crafted slot never fills a wish (the idle crafted slot)
+## T1 (✅ DONE 2026-06-22) — Essence/crafted slot never fills a wish (the idle crafted slot)
 
 This is the known-open **HIGH-2** from `HANDOFF.md`, and the QA shows it is not a corner case:
 it is the dominant pattern. The one guaranteed-mod (crafted) slot was used to place a wanted
@@ -121,17 +121,28 @@ Re-run `node pipeline/qa20.js`. Expect:
 - Update `test_planner.js` with a regression: a goal whose only essence-able mod is a wish must
   produce a route that essences that wish (asserts the crafted slot is used).
 
-- [ ] Implement the wish fallback in `routeAcquireAnchor`
-- [ ] Add honest lower-tier labelling to the essence step
-- [ ] Handle the edge cases above
-- [ ] Add the `test_planner.js` regression
-- [ ] Re-run qa20 and record the new scorecard here
+- [x] Implement the wish fallback in `routeAcquireAnchor` (DONE 2026-06-22)
+- [x] Add honest lower-tier labelling to the essence step (DONE: "deterministic LOWER-TIER fill of a wish")
+- [x] Handle the edge cases above (no-essence wishes stay slams; Perfect essences excluded; must-haves keep slot priority; fills recomputed)
+- [x] Add the `test_planner.js` regression (DONE: Ring Life/ColdRes/Mana, asserts the wish gets essenced)
+- [x] Re-run qa20 and record the new scorecard (below)
+
+**RESULT (2026-06-22, T1 + D1 + D2 together):**
+- Wishes secured: **0/27 → 13/27 (48%)** — every acquire-route run with an essence-able wish now fills it.
+- Must-haves secured: **32/38 → 36/38 (95%)** — D1 (below) secured the lone-on-side musts.
+- Two must-haves still gambled, both defensible: **Run 2** (a 4-mod triple-res ring: the acquire route has only 3 deterministic slots, and T1 correctly spends the essence on the ~41-slam Chaos-Res WISH, leaving Life as a clean ~9-slam grind rather than taking the fracture route's brick risk) and **Run 15** (desecrate-exclusive route has no carry/essence logic yet — separate enhancement).
 
 ---
 
-## Open design calls (decide before coding, not blockers)
+## Design calls (RESOLVED 2026-06-22)
 
-### D1 — Lone-on-side must-haves get gambled while the desecrate slot is free
+### D1 — Lone-on-side must-haves get gambled while the desecrate slot is free  ✅ DECIDED: go for determinism
+
+**Decision (Aiyu, 2026-06-22): go for determinism.** Implemented: the same-side-keeper gate in
+`routeAcquireAnchor` is removed, so a lone-on-side hard must-have (expected slams ≥ 4, desecrate-able)
+now takes the one desecrate slot instead of being exalt-slammed. Effect in qa20: the lone-prefix
+Life/Spirit/Spell-Damage gambles in runs 7/9/10/11/14 became deterministic desecrations
+(must-haves 32 → 36 / 38). The HIGH-1 test was flipped to assert the new behaviour. Original note:
 
 Runs 9 / 10 / 14 gamble a lone-prefix Life (~5-6 slams) with the desecrate slot unused. The
 HIGH-1 same-side-keeper gate skips these on purpose, but that gate was a SAFETY optimization (an
@@ -144,7 +155,12 @@ real trade (a bone + omens + Well trips vs a bounded ~5-slam exalt grind), so th
 call, not an obvious fix. Decide the policy, then encode it (probably a "max determinism" vs
 "min currency" preference flag rather than hard-coding one side).
 
-### D2 — Effort metric is unreliable whenever desecration is in the route
+### D2 — Effort metric is unreliable whenever desecration is in the route  ✅ DECIDED: fold the fix in
+
+**Decision (Aiyu, 2026-06-22): fold the bug fix in.** Implemented: `desecrateReveals` now CAPS its
+estimate at 12 (desecration is a bounded, guided placement via side/lich omens + Abyssal Echoes +
+Omen of Light, not a raw weight-share gamble). Run 15's effort dropped 3331 → 39, with no change to
+any recommendation in qa20 (the totals held at 36/38 must, 13/27 wish). Original note:
 
 Run 15 (desecrate-exclusive) scored effort **3331**. `desecrateReveals` explodes for tiny-weight
 exclusive mods and under-prices desecration elsewhere (it is part of why Life gets desecrated over
@@ -232,14 +248,17 @@ self-fracture path and the user can substitute "buy it" if they prefer. No work 
 - [ ] Implementation: show the high-tier bias on odds steps (a min-mod-level floor reweights the
       pool toward higher tiers, similar in spirit to how `oddsForBiased` handles catalysts).
 
-### T2d (medium) — Lich pools: Gazes are in cache, omens still need poe2db
+### T2d (medium) — Lich desecration: omens are confirmed; the Gazes are a red herring
 
-- [ ] The three liches exist in our CoE cache as SOUL CORES (`Kurgal's Gaze`, `Amanamu's Gaze`,
-      `Ulaman's Gaze`, plus `Tecrod's Gaze` used in V4), each granting a class-specific lich mod via
-      a socket. Extract these alongside T2a. This is the socket-based way to add a lich mod.
-- [ ] The OMEN-based desecrate-pool forcing (Blackblooded/Liege/Sovereign, and the video's "Omen of
-      the Leech") is NOT in this dump (CoE carries modifiers/socketables, not omens). Still needs
-      poe2db for exact omen names + effects before we can name the precise omen in a desecrate step.
+- [x] CORRECTION (2026-06-23): the **Gazes** (`Kurgal's/Amanamu's/Ulaman's/Tecrod's Gaze`) are equip-
+      stat SOUL CORES ("Abyssal Eye" augments) that grant a fixed stat per item type — they are NOT a
+      crafting/desecration tool and have nothing to do with the lich desecration pools. An earlier note
+      wrongly called them "the socket-based way to add a lich mod." They stay in the socketables
+      catalogue (as `grant_mod`) but the planner does not use them. See `crafting-knowledge-base.md` §6.
+- [x] The lich desecrate OMENS are confirmed (poe2db): Blackblooded→Kurgal, Liege→Amanamu,
+      Sovereign→Ulaman; "Omen of the Leech" was the Liege. Surfaced as desecrate-step guidance.
+- [ ] Still open (data): a real mod→lich map (which lich's pool carries each desecrated-exclusive mod)
+      needs a poe2db Desecrated-Modifiers pull before the planner can name the exact omen per mod.
 
 ### T2e (medium) — Magic-rarity final goals
 
@@ -312,32 +331,64 @@ are mostly independent. Each step lists the files it touches and an acceptance c
 - [ ] **B3.** `test_planner.js`: a Perfect Exalt (floor 50) reports higher target share than a plain
       Exalt on a base where low tiers exist.
 
-### Phase C — Legality: socketable loadout (cap + pool expanders)
+### Phase C — Legality: socketable loadout (cap + pool expanders)  ✅ DONE 2026-06-22
 
-- [ ] **C1.** Give the target an optional `socketables: [ids]` loadout. In `app/app.js`,
-      `checkLegality` reads it: each `cap_crafted` adds +1 to the crafted-mod allowance, each
-      `cap_suffix` adds +1 to the suffix cap (so Rare 3s → 4s); `modEligible` adds each `pool_unlock`
-      rune's tag family to the eligible pool FOR THAT ITEM CLASS only.
-- [ ] **C2.** Builder UI (`app/app.js` + `index.html`): a small "equipped socketables" picker so the
-      user can toggle Astrid's Creativity / Serle's Triumph / a "Can roll X" rune and see the caps +
-      pool change live.
-- [ ] **C3.** `test_planner.js` / `test_data.js`: with Serle's Triumph a 4-suffix goal is LEGAL; with
-      Kolr's Hunt a Marksman mod (e.g. projectile levels) is eligible on Gloves; without it, illegal.
+- [x] **C1.** (DONE) `app/app.js` gains `socketableLoadout(target)` and `checkLegality` reads
+      `target.socketables`: `cap_suffix`/`cap_prefix` raise the affix cap (Serle's Triumph: Rare 3
+      suffixes → 4, verified legal); `cap_crafted` is surfaced as `craftedSlots` in the result (the
+      legality engine has no crafted-count check — that rule lives in the planner, so this just feeds
+      Phase D); socketables apply only when their `scope` covers the item class. Result now carries
+      `craftedSlots`, `prefixCap`, `suffixCap`, `unlocked`.
+- [x] **C2.** (DONE) Builder UI: an "Equipped socketables" picker in `index.html` + `renderSockets()`
+      in `app/app.js` lists the cap/pool runes that apply to the current class (Amulet → Astrid's +
+      Serle's; Gloves → those + Kolr's/Katla's). Toggling updates `state.socketables` and recomputes
+      legality live (verified with jsdom: 4 suffixes flips illegal → legal when Serle's is checked).
+- [x] **C-followup (data gap): pool_unlock mod-eligibility.** DONE 2026-06-23. The off-pool mods are
+      NOT in the CoE dump (no family tag), so they were pulled from **poe2db** (Aiyu's screenshots,
+      Chrome wasn't usable to scrape directly) into `data/poe2_rune_pools.json` (6 runes, 78 mods:
+      text + side + ilvl + approximate weights). Bundled as `window.POE2.runePools`. `app.js` gains
+      `runePoolMods(target)` which, for each equipped pool_unlock rune in scope, builds the unlocked
+      mods tagged to the current base; `renderPicker` shows them (RUNE tag) and `checkLegality` flags a
+      rune mod whose rune isn't socketed. Verified with jsdom (equipping Kolr's Hunt live-adds its 12
+      Marksman mods to the gloves picker) + 4 new `test_planner.js` assertions.
+- [ ] **C-followup (planner odds for rune mods).** The planner's `eligibleMods` does not yet include
+      rune-pool mods, so a goal containing a rune mod plans fine but its slam-odds denominator is a
+      touch optimistic (the rune pool isn't counted as competition). Thread the loadout into
+      `eligibleMods` during Phase D so odds are exact. Low impact (rune mods are rare/low-weight).
+- [ ] **C-followup (socket-count limit).** An item can hold only as many socketables as it has sockets
+      (Gloves 1, Body Armour 2, Jewellery 0). Not enforced yet (needs per-class socket counts, which
+      ARE in the CoE bgroup data — `max_sockets`). Add when it matters.
+- [x] **C3.** (DONE) `test_planner.js`: 6 assertions, Serle's makes a 4-suffix goal legal (cap 4);
+      Astrid's gives `craftedSlots` 2; Kolr's Hunt scope respected (no-op on Amulet, records Marksman
+      on Gloves). The "Marksman mod eligible on Gloves" assertion is deferred to the C-followup data
+      gap above (we can't yet identify Marksman mods). All suites green.
 
-### Phase D — Planner: spend the expanded budget (the determinism win)
+### Phase D — Planner: spend the expanded budget (the determinism win)  ✅ mostly DONE 2026-06-23
 
-- [ ] **D1. Second crafted slot (Astrid's Creativity).** When the loadout grants `cap_crafted`,
-      `routeAcquireAnchor` may place a SECOND guaranteed essence/alloy. This composes with T1 (the
-      wish-essence fallthrough): two crafted slots ⇒ secure two mods deterministically. Re-run qa20
-      with Astrid's in the loadout and expect wishes-secured to climb further.
-- [ ] **D2. Lich Gaze + exact lich omen.** Offer a lich Gaze soul core as an alternative deterministic
-      placement for a lich mod, and make desecrate steps name the EXACT omen by lich
-      (Blackblooded→Kurgal, Liege→Amanamu, Sovereign→Ulaman). Needs a mod→lich map — derive it from
-      the Gaze grants and the desecrated-exclusive pool (mgroup 10) during Phase A; flag if CoE
-      doesn't carry the lich tag and it needs a small poe2db cross-check.
-- [ ] **D3. 7th suffix (Serle's Triumph).** When a goal wants >3 suffixes and the loadout has Serle's,
-      let the planner place the 4th suffix (usually the desecrate/last-deterministic mod).
-- [ ] **D4.** `test_planner.js` regressions for D1–D3.
+- [x] **D1. Second crafted slot (Astrid's Creativity).** DONE. `routeAcquireAnchor` reads
+      `craftedSlots(target, db)`; with Astrid's (cap_crafted ≥ 2) it places a SECOND guaranteed mod
+      via a **Perfect essence** (remove+add, since the item is already Rare after the 1st magic→rare
+      essence) steered with a Crystallisation omen, exactly like the V4 caster-gloves video. Composes
+      with T1 (must-haves at tier first, else the slams-saving wish). Demo: Ring Life/ColdRes/ManaRegen
+      with Astrid's goes from 1 gamble to 0 (Mana Regen → Essence of Hysteria). Data-gated: only fires
+      when a goal mod has a Perfect essence (few do). Regression test added.
+- [x] **D2. Lich-omen guidance (corrected scope).** ⚠ The original plan ("offer a lich Gaze as a
+      deterministic placement") was WRONG: the **Gazes are equip-stat soul cores ("Abyssal Eye"
+      augments), NOT a crafting/desecration tool** (confirmed 2026-06-23, Aiyu screenshot). Removed
+      that inference (`lichForMod`). What shipped: an honest desecrate-step + note giving the real lich
+      OMEN mapping (Blackblooded→Kurgal, Liege→Amanamu, Sovereign→Ulaman) and pointing to poe2db for
+      which lich carries a mod. **Still open (needs data):** naming the exact omen per mod requires a
+      real mod→lich desecration-pool map (a poe2db Desecrated-Modifiers pull, like the rune pools).
+- [x] **D3. 7th suffix (Serle's Triumph).** DONE. Added `affixCaps(target, db)`; `forcingNote` uses
+      effective caps so a 4-suffix goal (legal via Serle's) plans all 4 and the pool-forcing note reads
+      "3 prefixes / 4 suffixes". Regression test added.
+- [x] **D4.** `test_planner.js` regressions for D1–D3 added (all suites green; qa20 unchanged at
+      36/38, 13/27 since none of the qa20 goals equip socketables).
+- [ ] **D-followup (low): rune-mod odds in the planner.** `eligibleMods` still doesn't count
+      rune-pool mods in the slam-odds denominator, so a goal with a rune mod plans fine but its odds
+      read slightly optimistic. Low impact (rune mods are rare/low-weight). Thread the loadout in later.
+- [ ] **D-followup (data): mod→lich desecration map.** Pull poe2db's Desecrated Modifiers (by lich) so
+      desecrate steps can name the exact lich omen for any desecrated-exclusive mod (see D2).
 
 ### Phase E — Magic-rarity final goals (T2e)
 
