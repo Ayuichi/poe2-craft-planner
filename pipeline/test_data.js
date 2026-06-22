@@ -41,5 +41,27 @@ ok(solar && /Spirit/.test(solar.implicits[0]), "Solar Amulet implicit = +Spirit"
 ok(D.implicits.Amulet.some(b => /Prefix Modifier/.test(b.implicits.join(" "))),
    "modifier-slot implicit bases captured (e.g. +/-1 prefix bases for open-slot starts)");
 
+console.log("\n== Socketables (Phase A: runes / soul cores that change a craft) ==");
+const sk = name => (D.socketables || []).find(s => s.name === name);
+ok(Array.isArray(D.socketables) && D.socketables.length > 0, `socketables present (${D.socketables && D.socketables.length})`);
+ok(sk("Astrid's Creativity") && sk("Astrid's Creativity").effect === "cap_crafted",
+   "Astrid's Creativity = cap_crafted (+1 crafted slot)");
+ok(sk("Astrid's Creativity").value >= 1 && sk("Astrid's Creativity").scope.includes("all"),
+   "Astrid's Creativity grants >=1 and applies to all item classes");
+ok(sk("Serle's Triumph") && sk("Serle's Triumph").effect === "cap_suffix",
+   "Serle's Triumph = cap_suffix (7th modifier, suffix only)");
+ok(sk("Kolr's Hunt").effect === "pool_unlock" && sk("Kolr's Hunt").unlocks === "Marksman",
+   "Kolr's Hunt = pool_unlock Marksman (the gloves off-pool projectile unlock)");
+ok(sk("Kolr's Hunt").scope.includes("Gloves"), "Kolr's Hunt scoped to Gloves");
+const pools = D.socketables.filter(s => s.effect === "pool_unlock");
+ok(pools.length >= 6, `>=6 pool-unlock runes (${pools.length})`);
+ok(pools.every(s => s.unlocks && s.scope.length), "every pool_unlock names a tag family + has a class scope");
+const caps = D.socketables.filter(s => s.effect === "cap_crafted" || s.effect === "cap_suffix");
+ok(caps.length >= 2 && caps.every(s => s.value >= 1), "cap runes (crafted/suffix) carry a numeric value >=1");
+const gazes = D.socketables.filter(s => s.lich);
+ok(gazes.length === 3, `3 lich gazes (${gazes.length})`);
+ok(gazes.every(s => ["Kurgal", "Amanamu", "Ulaman"].includes(s.lich)), "each gaze tagged Kurgal/Amanamu/Ulaman");
+ok(gazes.every(s => s.byScope && Object.keys(s.byScope).length), "each gaze keeps per-class byScope grants");
+
 console.log("\n" + (fails ? `FAILED: ${fails}` : "ALL PASSED"));
 process.exit(fails ? 1 : 0);

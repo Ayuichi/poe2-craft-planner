@@ -12,6 +12,13 @@
 > chaos-targeting → quality/catalysts → desecrate-loop). Stage 4b has now BUILT most of it
 > (catalysts, implicits, must-have flag, fracture route, whittling/desecrate-loop). Still open:
 > the +3→+4 @ 34% **quality breakpoints** (not in CoE) and a few later items — see Status + Suggested next tasks.
+>
+> ⚠ **ALSO READ: `TODO.md`** — the live backlog (supersedes "Suggested next tasks" below for
+> prioritization). T1 = the idle-crafted-slot fix: a determinism QA (`qa20.js`, 20 goals) found
+> must-haves are 84% deterministic but **wishes are 0/27** because the crafted slot is only offered to
+> must-haves and sits idle. T2 + the Phase A–F plan = new tools pulled from 4 crafting-video
+> transcripts (`transcript-gap-analysis.md`); **Phase A is DONE** (socketables extracted: Astrid's
+> Creativity = +1 crafted slot, Serle's Triumph = +1 suffix, Kolr's Hunt = off-pool unlock).
 
 ## What this is
 A **goal → path** crafting planner for Path of Exile 2 (patch 0.5, *Return of the Ancients*).
@@ -76,22 +83,26 @@ app/                  Self-contained web app (open app/index.html, runs offline 
   app.js              target builder + legality engine + paste parser + plan rendering
   planner.js          Stage 3: state-transition model + strategy templates → routes
   poe2_data.js        generated slim dataset (window.POE2); loaded via <script src>
-data/                 poe2_mods_by_class.json (per class: bases, prefixes, suffixes [exalt-rollable, with `bw` weights], desecrated [exclusive pool]), poe2_bases.json, poe2_meta.json, poe2_essences.json, poe2_catalysts.json (Stage 4), poe2_implicits.json (Stage 4)
+data/                 poe2_mods_by_class.json (per class: bases, prefixes, suffixes [exalt-rollable, with `bw` weights], desecrated [exclusive pool]), poe2_bases.json, poe2_meta.json, poe2_essences.json, poe2_catalysts.json (Stage 4), poe2_implicits.json (Stage 4), poe2_socketables.json (Phase A: runes/soul cores/idols)
 pipeline/
   build_dataset.py    Craft of Exile (cache/coe_poec_data.json) → ../data/*.json (with WEIGHTS)
   build_essences.py   cached poe2db essence page → ../data/poe2_essences.json
   build_extras.py     CoE → ../data/poe2_catalysts.json + poe2_implicits.json (Stage 4)
+  build_socketables.py CoE socketables → ../data/poe2_socketables.json (runes/soul cores/idols; Phase A)
   build_app_data.py   ../data/*.json → ../app/poe2_data.js  (bundles mods+essences+catalysts+implicits)
   cache/coe_poec_data.json  cached Craft of Exile data dump (mods/bases/tiers/weights/catalysts/bitems)
   cache/poe2db_essence.md   cached poe2db /us/Essence render
   test_planner.js     node smoke test for the planner (incl. gold-amulet + same-side-keeper regressions)
   test_data.js        node sanity test for Stage 4 data (catalysts + implicits)
   qa_runs.js          Q&A harness: builds 10 realistic wish-items, dumps recommended route + effort + notes
+  qa20.js             DETERMINISM harness (20 goals): scores secured-vs-gamble per wanted stat (`node qa20.js sum`)
 crafting-knowledge-base.md   0.5 crafting systems reference (essences, omens, desecration, alloys)
 poe2-crafting-reference.md   distilled crafting guide (the video walkthrough → clean reference)
 high-end-crafting-principles.md  named, pointable endgame techniques (P1–P15) we've verified
 planner-design-spec.md       the endgame craft model the Stage 4b engine targets (READ FIRST)
 planner-qa-findings.md       10-run Q&A audit + the safety model (what makes a Chaos/Annul safe)
+TODO.md                      LIVE backlog: T1 wish-fallthrough, T2 new tools, Phase A–F implementation plan
+transcript-gap-analysis.md   4 crafting videos vs P1–P15 + planner (what's covered / what's missing)
 HANDOFF.md, CHANGELOG.md, README.md, .gitignore
 ```
 
@@ -214,6 +225,11 @@ HANDOFF.md, CHANGELOG.md, README.md, .gitignore
   share a side with the anchor, making the annul a coin-flip) — kept honest rather than faked.
 
 ## Suggested next tasks
+> **`TODO.md` is now the authoritative backlog** (T1 wish-fallthrough, T2 new tools, Phase A–F plan).
+> Phase A (socketable data) is done. Next up there: T1 + Phase C (legality reads the socketable
+> loadout) → Phase D (planner spends the bigger budget). The list below predates TODO.md and is kept
+> for history.
+
 1. ~~**Stage 4b engine**~~ **DONE.** Catalysts/Catalysing Exaltation wired into jewellery routes;
    fracture-anchor + chaos-targeting taught and §3.5-gated to 2+ hard MUST-HAVE same-side mods;
    must-have/wish flag shipped; whittling + desecrate-loop spelled out. The fracture route was
@@ -275,4 +291,9 @@ python build_app_data.py               # → ../app/poe2_data.js (bundles all of
   catalyst boosts a mod when its tags ∩ the mod's `mtags`) and `bitems` (named bases + `implicits`,
   e.g. Gold Amulet→Rarity, Solar→Spirit, Dusk→+1 prefix slot). See `build_extras.py`.
 - **RePoE2** (https://repoe-fork.github.io/poe2/) — RETIRED as backbone (spawn weights flattened
-  to 0/1, no odds). Kept only as a cross-check reference. Old fields: `
+  to 0/1, no odds). Kept only as a cross-check reference; its per-mod weight fields are unusable for
+  odds, so nothing in the live pipeline reads from it anymore.
+- **poe2db** (poe2db.tw / poe2wiki.net) — used for data CoE doesn't carry: the essence table
+  (`build_essences.py`), and (2026-06-22) the confirmed currency/omen facts now in
+  `crafting-knowledge-base.md` (tiered Exalt/Chaos floors 35/50, Architect's Orb, Vaal Blacksmith's
+  Infuser, the lich-omen mapping). Socketables come from the CoE dump, not poe2db.

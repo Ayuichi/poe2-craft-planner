@@ -3,7 +3,57 @@
 All notable changes to the PoE2 Craft Planner. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/). Dates are YYYY-MM-DD.
 
-## [Unreleased] — 2026-06-22
+## [Unreleased] — 2026-06-22 (determinism QA, video gap-analysis, socketables Phase A)
+
+A research + groundwork session: audited how deterministically the planner fills goals, checked the
+engine against four real endgame crafting videos, closed the remaining poe2db knowledge gaps, and
+landed Phase A of the new-tools plan (socketable data extraction).
+
+### Added
+- **`pipeline/qa20.js`**: 20-item determinism harness + scorer. Classifies how the recommended route
+  places every wanted stat as secured (bought carry / essence / desecrate / chaos-set) vs gamble
+  (exalt slam), with tier-honesty and idle-crafted-slot detection. Run `node pipeline/qa20.js [n|sum]`.
+- **`TODO.md`**: the living backlog. T1 = the idle-crafted-slot fix (essence a wish when no must-have
+  claims the slot). T2 = new mechanics from the videos. Plus a sequenced implementation plan
+  (Phases A through F) with file pointers and acceptance checks.
+- **`transcript-gap-analysis.md`**: 4 crafting videos vs P1-P15 and the planner. The strategy
+  skeleton holds; the gaps are specific tools (slot/cap expanders, tiered orbs, magic-rarity goals).
+- **`pipeline/build_socketables.py` + `data/poe2_socketables.json`** (Phase A): extracts all 287
+  socketables (209 runes / 60 soul cores / 18 idols) from the CoE cache, tagged by effect
+  (`cap_crafted`, `cap_suffix`, `pool_unlock`, `grant_mod`) with class/bgroup restrictions resolved,
+  and lich Gazes tagged Kurgal/Amanamu/Ulaman with per-class grants.
+- **`window.POE2.socketables`**: socketables bundled into the app data (slim; lich gazes keep `byScope`).
+- 12 socketable assertions in `pipeline/test_data.js`.
+
+### Changed
+- **`crafting-knowledge-base.md`**: confirmed from poe2db / poe2wiki (2026-06-22): tiered Exalt/Chaos
+  orbs are real (Greater = min mod level 35, Perfect = 50); **Architect's Orb** (twice-corrupt,
+  50/50 enchant/destroy); **Vaal Blacksmith's Infuser** (quality 20% to 30%, rising corrupt risk,
+  the weapon/armour lever for P13 quality breakpoints); the lich-omen mapping (Blackblooded->Kurgal,
+  Liege->Amanamu, Sovereign->Ulaman, and the videos' "Omen of the Leech" = Omen of the Liege); plus a
+  new "crafting-relevant socketables" section (8 structural runes + Gazes + Iron runes).
+- **`pipeline/build_app_data.py`**: bundles `poe2_socketables.json` into `window.POE2`.
+
+### Findings (drive the backlog; no engine change yet)
+- **Determinism QA (20 runs): must-haves 32/38 (84%) secured deterministically, wishes 0/27 (0%).**
+  Root cause: the crafted (essence) slot sits idle in every run. It is only offered to must-haves, and
+  top-tier must-haves exceed what essences can guarantee, so a gameable wish gets slammed while the one
+  guaranteed-mod slot is empty. This is the pervasive form of HIGH-2, now tracked as T1.
+- **Video gap-analysis:** the recommended route SHAPE matches the videos (secure the carry, chaos the
+  contested set, desecrate last), but the engine cannot yet express the slot/cap expanders (Astrid's
+  Creativity = +1 crafted slot, Serle's Triumph = +1 suffix, Kolr's Hunt = off-pool unlock), tiered
+  orbs, magic-rarity final goals, or the corruption layer.
+
+### Tests
+- `pipeline/test_data.js`: +12 socketable assertions. Both data and planner suites green.
+
+### Notes for the maintainer
+- Buy-pre-fractured bases were considered and EXCLUDED from scope: it is a market/price question and we
+  have no live trade data, so self-fracture vs buy stays the user's choice.
+
+---
+
+## [Unreleased] — 2026-06-22 (earlier: 10-run Q&A audit + same-side-keeper gate)
 
 Q&A audit pass: ran 10 realistic wish-items through the planner, checked every recommended route
 against `poe2-crafting-reference.md`, and landed a **safety-model** correctness fix.

@@ -37,7 +37,6 @@ pipeline/   build_dataset.py (Craft of Exile -> normalized, with weights), build
             build_app_data.py (-> app module), test_planner.js (node smoke test)
 crafting-knowledge-base.md   0.5 crafting systems reference
 poe2-crafting-reference.md   mechanics reference distilled from a community crafting guide
-planner-design-spec.md       target model for the next engine: the real endgame craft method
 ```
 
 ## Run it

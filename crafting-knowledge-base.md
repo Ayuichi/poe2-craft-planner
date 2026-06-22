@@ -64,11 +64,35 @@ Basic transforms:
 | Orb of Chance | Normal → random Unique (destroys item on fail without an omen) |
 | Vaal Orb | Corrupt: random outcome, locks the item from further crafting |
 
-**Tiered currency:** Lesser / Greater / Perfect variants of Transmute, Augment, and Jeweller's orbs guarantee a higher minimum modifier level. Greater/Perfect are rarer in 0.5.
+**Tiered currency:** Lesser / Greater / Perfect variants guarantee a higher **minimum modifier
+level** on the mod they add/roll. Confirmed values (poe2db / poe2wiki, 2026-06-22):
+
+| Orb | Greater (min mod lvl) | Perfect (min mod lvl) |
+|---|---|---|
+| Transmute / Augment / Jeweller's | higher floor | higher floor |
+| **Exalted Orb** | 35 | 50 |
+| **Chaos Orb** | 35 | 50 |
+
+So a Greater/Perfect **Exalted** Orb adds a random mod at min level 35/50, and a Greater/Perfect
+**Chaos** Orb removes-and-adds at min level 35/50. The floor mechanic: the added mod is at least
+that level, EXCEPT a mod type whose every tier is below the floor still rolls its highest available
+tier (respecting ilvl), so nothing is excluded entirely. These are the videos' "perfect exalt /
+greater chaos" tier-bias tools. Greater/Perfect are rarer in 0.5.
 
 **Jeweller's Orbs** add sockets to *gems* (Lesser → 3rd socket, Greater → 4th, Perfect → 5th). In 0.5 they also add sockets to skills granted by items.
 
 **Vaal/corruption outcomes:** add enchant, reroll up to 3 mods, add a socket past the limit, or nothing. Corruption is a finishing step.
+
+**Architect's Orb** (confirmed 2026-06-22): corrupts an ALREADY-corrupted item into Twice-Corrupted.
+50% adds an additional corruption enchantment, 50% destroys the item (no other mod outcomes). From
+the Tier-3 Corruption Chamber / Royal Trove in Atziri's Temple. High-risk gamble on finished items.
+
+**Vaal Blacksmith's Infuser** (confirmed 2026-06-22): pushes a Martial/Caster weapon or Armour's
+quality **above 20%, up to 30%**. Each use always adds 1–2% quality, then a weighted chance to
+corrupt that scales with quality (~10% at 22% → ~45% at 29%); safe at 20–21% (one free use). The
+corruption only ever adds quality (it cannot reroll mods like a Vaal Orb), but once it corrupts, the
+item is locked. This is the weapon/armour lever for the P13 quality breakpoints (the jewellery lever
+is catalysts + Essence of the Breach's +20% max quality).
 
 **Disenchant / salvage:** Magic items disenchant into Transmute shards, Rares into Regal shards; quality items salvage into Armourer's Scraps / Blacksmith's Whetstones; socketed items salvage into Artificer's Orbs.
 
@@ -124,7 +148,11 @@ Omens are right-click **activated** in inventory, then modify the *next* compati
 **Abyss/desecration omens:**
 - **Omen of Abyssal Echoes**: reroll the 3 offered desecrate options once.
 - **Omen of Light** (Annul): removes only the *desecrated* mod (the "redo my desecrate" tool).
-- **Omens of the Blackblooded / Liege / Sovereign**: force the next desecration from a specific Lich pool (Kurgal / Amanamu / Ulaman). Weapon & jewellery desecration.
+- **Lich-pool omens** (force the next desecration into one lich's pool; verified poe2db 2026-06-22):
+  Omen of the **Blackblooded → Kurgal**, Omen of the **Liege → Amanamu**, Omen of the **Sovereign →
+  Ulaman**. (The video's garbled "Omen of the Leech" = **Omen of the Liege**: it forces an *Amanamu*
+  ("namu") modifier, which matches.) Each drops only from a rare Abyssal monster carrying that lich's
+  Lichborn modifier. Pair with Sinistral/Dextral Necromancy to also fix the side.
 - **Omen of Putrefaction**: legacy 6-desecrate effect — neutered by the 0.5 one-desecrated cap; treat as Standard-only.
 
 **0.5 notes:** Omen of Corruption removed. Chaotic Rarity/Quantity/Monsters omens were *inverted* (now *prevent* a mod type rather than guarantee it; up to 3 stack). New Omen of Chaotic Effectiveness (Waystones).
@@ -155,6 +183,34 @@ Loop: side omen + lich omen → bone → (Abyssal Echoes for a reroll) → revea
 - **Runes and Soul Cores cannot be removed** once placed — choose carefully.
 - Soul Cores have mods unavailable on regular Runes.
 - 0.5 heavily rebalanced rune values (Body/Mind/Rebirth/Inspiration/Stone/Vision/elemental runes etc.) — pull current numbers from PoE2DB.
+
+### Crafting-relevant socketables (confirmed from Craft of Exile data, 2026-06-22)
+
+The CoE dump (`pipeline/cache/coe_poec_data.json` → `socketables`, 287 entries: 209 runes,
+60 soul cores, 18 idols) carries the socketables that actually change how an item can be crafted.
+The ones that matter for a craft planner, because they relax our structural assumptions, are runes:
+
+| Rune | Grants | Crafting effect |
+|---|---|---|
+| **Astrid's Creativity** | "Can have # additional Crafted Modifier" | **+1 crafted slot** — lets an item hold TWO crafted mods (e.g. two essences). Breaks the one-crafted-slot rule. |
+| **Serle's Triumph** | "+# Suffix Modifier allowed" | **7th modifier** (suffix only; no prefix equivalent in data). Breaks the 6-mod cap. |
+| **Kolr's Hunt** | "Can roll Marksman modifiers" | Unlocks Marksman (projectile/bow) mods on the item (e.g. projectile levels on gloves). |
+| **Katla's Gloom** | "Can roll Decay modifiers" | Unlocks the Decay mod family. |
+| **Medved's Tending** | "Can roll Soul modifiers" | Unlocks the Soul mod family. |
+| **Thrud's Might** | "Can roll Destruction modifiers" | Unlocks the Destruction mod family. |
+| **Uhtred's Sidereus** | "Can roll Chronomancy modifiers" | Unlocks the Chronomancy mod family. |
+| **Vorana's Carnage** | "Can roll Berserking modifiers" | Unlocks the Berserking mod family. |
+
+Also confirmed in the same data: **Greater/Perfect Iron Rune** = % increased Physical Damage on
+weapons (Armour/Evasion/ES on armour); the lich **Gazes** are SOUL CORES (`Kurgal's Gaze`,
+`Amanamu's Gaze`, `Ulaman's Gaze`, `Tecrod's Gaze`), each granting a class-specific lich mod via a
+socket (an alternative to desecration omens). bgroup → item-type map (from the same dump):
+1=Jewellery, 2=Body Armours, 3=Boots, 4=Helmets, 5=Gloves, 9=Jewels, 10=Flasks, 13=Charms; socket
+counts confirm Body Armour=2, Gloves/Boots/Helmets=1, Jewellery=0.
+
+These have NOT yet been extracted into app data. See `TODO.md` T2a for the planned
+`build_socketables.py` extraction. The "Can roll X" runes are how off-pool mods (like the gloves
+projectile crafts in the videos) become legal, which is why our base mod pools correctly lack them.
 
 ---
 

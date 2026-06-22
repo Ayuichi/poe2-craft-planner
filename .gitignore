@@ -21,5 +21,10 @@ Thumbs.db
 # Local Claude / preview config (machine-specific)
 .claude/
 
-# Internal-only working notes (not for the public repo)
+# Internal-only working notes (not for the public repo).
+# Code/data/pipeline and the player-facing reference + roadmap docs are public;
+# these are dev-process / AI-collaboration prose kept local only.
 high-end-crafting-principles.md
+planner-design-spec.md
+planner-qa-findings.md
+transcript-gap-analysis.md
