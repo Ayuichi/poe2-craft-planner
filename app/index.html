@@ -37,6 +37,12 @@
 
   /* item card */
   .item{background:#120d08;border:1px solid var(--edge);border-radius:8px;overflow:hidden;margin-top:4px}
+  .item .art{display:flex;align-items:center;justify-content:center;padding:14px 0 6px;
+    background:radial-gradient(120px 80px at 50% 40%,#2a2014,#140e08)}
+  .item .art img{width:78px;height:78px;object-fit:contain;filter:drop-shadow(0 2px 5px #000a)}
+  .item .art.placeholder{flex-direction:column;gap:4px}
+  .item .art.placeholder img{width:46px;height:46px;opacity:.35}
+  .item .art .ph-cap{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);opacity:.7}
   .item .name{padding:8px 12px;text-align:center;background:linear-gradient(#2a2016,#1d160e);color:var(--gold2);font-weight:600}
   .item .base{text-align:center;color:var(--muted);font-size:12px;padding:0 12px 8px}
   .item .meta{display:flex;justify-content:center;gap:14px;font-size:11px;color:var(--muted);padding:6px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
@@ -132,6 +138,12 @@
             <select id="baseSel"></select>
           </div>
         </div>
+        <div class="row" id="specificRow" style="display:none">
+          <div>
+            <label>Specific base <span class="hint" id="specificHint">— visual only, doesn't change the craft</span></label>
+            <select id="baseSpecific"></select>
+          </div>
+        </div>
         <div class="row">
           <div>
             <label>Item level</label>
@@ -174,6 +186,10 @@
     <h2>Goal item</h2>
     <div class="body">
       <div class="item" id="goalCard">
+        <div class="art placeholder" id="goalArt">
+          <img id="goalImg" alt="">
+          <span class="ph-cap" id="goalArtCap">image pending</span>
+        </div>
         <div class="name" id="goalName">No base selected</div>
         <div class="base" id="goalBase"></div>
         <div class="meta">

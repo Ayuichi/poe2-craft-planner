@@ -194,7 +194,17 @@
   const $ = sel => document.querySelector(sel);
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
-  const state = { itemClass: null, baseName: null, baseTags: [], itemLevel: 82, rarity: "Rare", mods: [], socketables: [] };
+  // Where the bundled base icons live (run pipeline/fetch_base_images.py to populate).
+  const ART_BASE = "assets/bases/";
+  // Shown until the real icon is present (file missing now / base has no art). Inline so no asset needed.
+  const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>" +
+    "<rect x='9' y='9' width='46' height='46' rx='6' fill='none' stroke='#6b5836' stroke-width='2'/>" +
+    "<circle cx='25' cy='24' r='4' fill='#6b5836'/>" +
+    "<path d='M18 42l9-11 6 7 6-8 7 12z' fill='#6b5836'/></svg>");
+
+  const state = { itemClass: null, baseName: null, baseTags: [], specificBase: null,
+                  specificOpts: [], itemLevel: 82, rarity: "Rare", mods: [], socketables: [] };
 
   $("#patch").textContent = DB.patch || "?";
 
@@ -213,10 +223,63 @@
     const b = DB.classes[state.itemClass].bases.find(x => x.name === state.baseName);
     state.baseTags = b ? b.tags : [];
     state.mods = []; // reset on base change to avoid illegal carryover
+    loadSpecificBases();
     renderSockets(); renderPicker(); render();
   }
   classSel.onchange = loadBases;
   baseSel.onchange = loadBase;
+
+  // Specific (named) bases for the chosen crafting base — DISPLAY ONLY. The crafting base
+  // (state.baseName / baseTags) still drives every legality + odds calc; this just lets the
+  // user pick the exact in-game base and see its icon, which reassures new crafters.
+  const specificSel = $("#baseSpecific");
+  function loadSpecificBases() {
+    const row = $("#specificRow");
+    specificSel.innerHTML = "";
+    const all = (DB.itemBases && DB.itemBases[state.itemClass]) || [];
+    state.specificOpts = all.filter(x => x.base === state.baseName);
+    if (!state.specificOpts.length) {            // no named bases for this crafting base
+      row.style.display = "none";
+      state.specificBase = null;
+      setArt();
+      return;
+    }
+    row.style.display = "";
+    state.specificOpts.forEach((x, i) => specificSel.append(new Option(`${x.name} (lvl ${x.drop_level})`, i)));
+    specificSel.value = "0";
+    state.specificBase = state.specificOpts[0];
+    setArt();
+  }
+  specificSel.onchange = e => {
+    state.specificBase = state.specificOpts[+e.target.value] || null;
+    setArt(); render();
+  };
+
+  // Point the goal-card image at the bundled icon; fall back to a placeholder if the file
+  // isn't present yet (images are fetched separately) or the base has no art.
+  function setArt() {
+    const img = $("#goalImg"), art = $("#goalArt"), cap = $("#goalArtCap");
+    const sb = state.specificBase;
+    if (sb && sb.img) {
+      img.onerror = () => {            // file not downloaded yet → graceful placeholder
+        img.onerror = null;
+        img.src = PLACEHOLDER_IMG;
+        art.classList.add("placeholder");
+        cap.textContent = "image pending"; cap.style.display = "";
+      };
+      art.classList.remove("placeholder");
+      cap.style.display = "none";
+      img.alt = sb.name;
+      img.src = ART_BASE + sb.img;
+    } else {
+      img.onerror = null;
+      img.src = PLACEHOLDER_IMG;
+      img.alt = "";
+      art.classList.add("placeholder");
+      cap.textContent = state.itemClass ? "no image" : "select a base";
+      cap.style.display = "";
+    }
+  }
 
   $("#ilvl").oninput = e => { state.itemLevel = parseInt(e.target.value, 10) || 1; renderPicker(); render(); };
   $("#raritySel").onchange = e => { state.rarity = e.target.value; render(); };
@@ -287,8 +350,15 @@
 
   function render() {
     const b = DB.classes[state.itemClass] && DB.classes[state.itemClass].bases.find(x => x.name === state.baseName);
-    $("#goalName").textContent = state.mods.length ? "Crafted " + state.baseName : (state.baseName || "No base selected");
-    $("#goalBase").textContent = state.itemClass ? `${state.baseName} · ${state.itemClass}` : "";
+    const dispName = (state.specificBase && state.specificBase.name) || state.baseName;
+    $("#goalName").textContent = state.mods.length ? "Crafted " + dispName : (dispName || "No base selected");
+    // subtitle: normally "<base> · <class>". When a specific base is chosen whose mod pool
+    // comes from a differently-named crafting base (e.g. Fire Staff under Staff), surface that
+    // pool; suppress the note when the crafting base just repeats the class name (weapons).
+    $("#goalBase").textContent = !state.itemClass ? ""
+      : state.specificBase && state.specificBase.name !== state.baseName
+          ? (state.baseName !== state.itemClass ? `${state.baseName} mods · ${state.itemClass}` : state.itemClass)
+          : `${state.baseName} · ${state.itemClass}`;
     $("#goalRarity").textContent = state.rarity;
     $("#goalIlvl").textContent = "ilvl " + state.itemLevel;
     const pc = state.mods.filter(m => m.side === "prefix").length, sc = state.mods.filter(m => m.side === "suffix").length;
