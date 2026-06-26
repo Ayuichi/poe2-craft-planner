@@ -32,9 +32,12 @@ app/        Self-contained web app (open app/index.html in a browser, runs offli
   app.js          target builder, legality engine, paste parser
   planner.js      Stage 3: state-transition model + strategy templates → crafting routes
   poe2_data.js    generated, slim dataset baked in for double-click use
-data/       Normalized dataset (poe2_mods_by_class.json w/ weights, poe2_bases.json, poe2_essences.json, meta) + schema README
+  assets/bases/   bundled base icons (populated by fetch_base_images.py)
+data/       Normalized dataset (poe2_mods_by_class.json w/ weights, poe2_bases.json, poe2_essences.json,
+            poe2_item_bases.json [specific named bases + icons, display-only], meta) + schema README
 pipeline/   build_dataset.py (Craft of Exile -> normalized, with weights), build_essences.py,
-            build_app_data.py (-> app module), test_planner.js (node smoke test)
+            build_item_bases.py (specific named bases + icon paths), build_app_data.py (-> app module),
+            fetch_base_images.py (download base icons), test_planner.js (node smoke test)
 crafting-knowledge-base.md   0.5 crafting systems reference
 poe2-crafting-reference.md   mechanics reference distilled from a community crafting guide
 ```
@@ -48,10 +51,25 @@ so `file://` works). Pick a base, add mods, watch the legality panel; or paste a
 
 ```bash
 cd pipeline
-python build_dataset.py     # Craft of Exile cache → ../data/*.json (with weights)
-python build_essences.py    # poe2db essence cache → ../data/poe2_essences.json
-python build_app_data.py    # → ../app/poe2_data.js
+python build_dataset.py      # Craft of Exile cache → ../data/*.json (with weights)
+python build_essences.py     # poe2db essence cache → ../data/poe2_essences.json
+python build_item_bases.py   # specific named bases + icon paths → ../data/poe2_item_bases.json
+python build_app_data.py     # → ../app/poe2_data.js
 ```
+
+### Base icons (separate, needs network)
+
+The specific-base picker shows each base's in-game icon. The data build records the icon
+*paths*; downloading the files is a separate step so the data build stays offline-only (and
+because some sandboxes block craftofexile.com). Run this from a machine that can reach it:
+
+```bash
+cd pipeline
+python fetch_base_images.py  # → ../app/assets/bases/ (auto-detects the CoE image URL prefix)
+```
+
+Until the icons are present the app shows a clean "image pending" placeholder; no rebuild is
+needed once they land.
 
 ## Data sources
 
